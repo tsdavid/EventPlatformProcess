@@ -1,0 +1,1 @@
+1. package process 내 java 모두 실행, properties 파일로 각 process java file 실행 설정 ( thread count 등).
