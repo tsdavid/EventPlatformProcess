@@ -5,10 +5,7 @@ import com.dk.platform.eventManager.util.ManagerUtil;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsMapMessage;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
+import javax.jms.*;
 
 public class TaskerReceiver implements Runnable, Consumer {
 
@@ -68,10 +65,10 @@ public class TaskerReceiver implements Runnable, Consumer {
             System.out.println("Runnalbe Run While Start : ");
 
 
-            TibjmsMapMessage message = null;
+            Message message = null;
             try {
 
-                message = (TibjmsMapMessage) msgConsumer.receive();
+                message =  msgConsumer.receive();
 
             } catch (JMSException e) {
                 e.printStackTrace();

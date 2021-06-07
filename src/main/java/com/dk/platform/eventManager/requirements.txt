@@ -3,8 +3,8 @@ EVENT MANAGER
 0. MANAGER가 처음 기동할 떄, EMS에 기동 중인 TASKER, WORK QUEUE등의 정보를 캐치
 1. WORK QUEUE가 신규로 생성되는 이벤트 캐치,
 2. 신규 생성된 WORK QUEUE를 TASKER에 통신(Queue)
-3. 각각 TASKER에서 처리하고 있는 WORK QUEUE 관리
-4. 실행 중인 TASKER 관리.
+3. 각각 TASKER에서 처리하고 있는 WORK QUEUE 관리        ::      Work Queue 관리를 위한 Data Structure 필요.
+4. 실행 중인 TASKER 관리.                             ::      TASKER VO, Map으로 관리.
 
 
 COMMUNICATION BETWEEN TASKERs
@@ -13,3 +13,9 @@ MANAGER  <--(queue)-- TASKER( "tasker_name" : "work_queue_name, ... ," )
 
 2. 신규 Work Queue Assign
 MANAGER("work_queue_name") --(queue)--> TASKER
+
+3. Work Queue 처리 완료된 보고
+MANAGER <--(queue)-- TASKER("work_done" : "work_queue_name")
+
+4. TASKER Health Check & work queue info
+MANAGER <--(queue)-- TASKER("cnt_work_queue" : "work_queue_name_A", "work_queue_name_B") per 3s.
