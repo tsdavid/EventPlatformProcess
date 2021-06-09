@@ -1,0 +1,14 @@
+EVENT TASKER
+
+0. Communication between Manager.
+    0-1. Tell Manager that Tasker is alive.
+    0-2. Receive Work Queue from Manager.
+    0-3. Send Completed Work Queue to Manager.
+1.
+
+
+
+Question.
+About Performance Sending Jms Message.
+1. is send msg performance depends on session count?
+2. is performance depends on connection count?

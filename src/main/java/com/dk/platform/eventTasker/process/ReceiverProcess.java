@@ -7,7 +7,7 @@ import com.tibco.tibjms.TibjmsMapMessage;
 
 import javax.jms.*;
 
-public class TaskerReceiver implements Runnable, Consumer {
+public class ReceiverProcess implements Runnable, Consumer {
 
     private Session session;
     private MessageConsumer msgConsumer;
@@ -15,7 +15,7 @@ public class TaskerReceiver implements Runnable, Consumer {
     private int ackMode;
     private boolean active = false;
 
-    public TaskerReceiver(String name, int ackMode, boolean isTopic) throws JMSException {
+    public ReceiverProcess(String name, int ackMode, boolean isTopic) throws JMSException {
 
         this.ackMode = ackMode;
         session = ManagerUtil.getConnection().createSession(ackMode);

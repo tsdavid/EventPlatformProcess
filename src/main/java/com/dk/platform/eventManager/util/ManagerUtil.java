@@ -1,11 +1,8 @@
 package com.dk.platform.eventManager.util;
 
 
-import com.dk.platform.backup.SingleTone;
 import com.dk.platform.ems.ConnConf;
-import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.vo.TaskerVO;
-import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsConnectionFactory;
 import com.tibco.tibjms.admin.QueueInfo;
 import com.tibco.tibjms.admin.TibjmsAdmin;
