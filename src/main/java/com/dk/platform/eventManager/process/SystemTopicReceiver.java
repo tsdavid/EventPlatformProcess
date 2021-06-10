@@ -4,6 +4,7 @@ package com.dk.platform.eventManager.process;
 // topic receiver ==> $sys.monitor.queue.create
 
 
+import com.dk.platform.Process;
 import com.dk.platform.ems.ConnConf;
 import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
@@ -13,7 +14,7 @@ import com.tibco.tibjms.TibjmsMapMessage;
 
 import javax.jms.*;
 
-public class SystemTopicReceiver implements Runnable, Consumer {
+public class SystemTopicReceiver implements Runnable, Consumer, Process {
 
     private final String PROPERTY_NAME = "target_name";
     private Session session;

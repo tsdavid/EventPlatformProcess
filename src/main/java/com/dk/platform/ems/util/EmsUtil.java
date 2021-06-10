@@ -1,5 +1,6 @@
 package com.dk.platform.ems.util;
 
+import com.dk.platform.ems.ConnConf;
 import com.tibco.tibjms.TibjmsConnectionFactory;
 import com.tibco.tibjms.admin.QueueInfo;
 import com.tibco.tibjms.admin.TibjmsAdmin;
@@ -25,12 +26,42 @@ public class EmsUtil extends tibjmsPerfCommon{
     }
 
 
-    public QueueInfo getDestination(String pattern) throws TibjmsAdminException {
+    public QueueInfo[] getDestinations(String pattern) throws TibjmsAdminException {
+        try{
+            if(tibjmsAdmin == null)
+                this.setAdminInstance();
+        }catch (Exception e){
 
-        TibjmsAdmin tibjmsAdmin = new TibjmsAdmin(serverUrl, username, password);
+        }
+        return tibjmsAdmin.getQueues(pattern);
+    }
 
-        return tibjmsAdmin.getQueue(pattern);
 
+    /**
+     * Get Active Manger on EMS.
+     *
+     * 1. getQueueInfo with Manager Queue prefix.
+     * 2. if more than 2 queue is on EMS, then select Active one.
+     *      => There is no case duplicate Manager Queue. Because Manager Queue will be only one and manager process will receive on queue. using EMS Exclusive.
+     * 3. Return Current Manager Name.
+     *
+     * @return
+     */
+    public String getActiveManager(){
+        try{
+            if(tibjmsAdmin == null)
+                this.setAdminInstance();
+        }catch (Exception e){
+
+        }
+
+        try{
+
+            return tibjmsAdmin.getQueue(ConnConf.EMS_MNG_QUEUE_NAME.getValue()).getName();
+        }catch (Exception e){
+
+            return null;
+        }
     }
 
     public static void main(String[] args) throws TibjmsAdminException {
@@ -41,7 +72,7 @@ public class EmsUtil extends tibjmsPerfCommon{
 
         EmsUtil emsUtil = new EmsUtil(url, user, pwd);
 
-        emsUtil.getDestination("h");
+//        emsUtil.getDestination("h");
 
     }
 

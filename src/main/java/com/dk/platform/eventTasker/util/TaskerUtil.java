@@ -1,16 +1,12 @@
 package com.dk.platform.eventTasker.util;
 
-import com.dk.platform.ems.ConnConf;
 import com.tibco.tibjms.TibjmsConnectionFactory;
-import com.tibco.tibjms.admin.TibjmsAdmin;
 
 import javax.jms.*;
 
 import com.dk.platform.ems.util.tibjmsPerfCommon;
 
 import java.util.Map;
-
-import static java.lang.System.out;
 
 public class TaskerUtil extends tibjmsPerfCommon{
 
@@ -44,7 +40,23 @@ public class TaskerUtil extends tibjmsPerfCommon{
         }
     }
 
+    public void sendQueueMessage(String destinationName, String sendMesage, Map<String,String> properties,
+                                 long jmsTimeToLive, boolean async, boolean isPersistent) throws JMSException {
 
+        this.sendMessage(destinationName, sendMesage, properties, jmsTimeToLive, async, true, isPersistent);
+    }
+
+
+    /**
+     * @param destinationName
+     * @param sendMesage
+     * @param properties
+     * @param jmsTimeToLive
+     * @param async
+     * @param isQueue
+     * @param isPersistent
+     * @throws JMSException
+     */
     private void sendMessage(String destinationName, String sendMesage, Map<String,String> properties,
                              long jmsTimeToLive, boolean async, boolean isQueue, boolean isPersistent) throws JMSException {
 

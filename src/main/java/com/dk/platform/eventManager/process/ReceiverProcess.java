@@ -1,10 +1,9 @@
-package com.dk.platform.eventTasker.process;
+package com.dk.platform.eventManager.process;
 
 import com.dk.platform.Process;
 import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.tibco.tibjms.Tibjms;
-import com.tibco.tibjms.TibjmsMapMessage;
 
 import javax.jms.*;
 

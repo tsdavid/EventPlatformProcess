@@ -10,7 +10,7 @@ public enum ConnConf {
     EMS_PWD(""),
     EMS_WRK_PREFIX("F1_EEP_WRK"),   //   WRK => WORK, Contain Tasks.
     EMS_TSK_PREFIX("F1_EEP_MGR_TSK"),
-    EMS_MNG_PREFIX("F1_EEP_MGR_MNG");
+    EMS_MNG_QUEUE_NAME("F1_EEP_MGR_MNG");   // MANAGER PROCESS will Receive Only One Queue.
 
     private String value;
 
