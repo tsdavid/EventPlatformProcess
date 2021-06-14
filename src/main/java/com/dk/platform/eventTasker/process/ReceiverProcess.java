@@ -1,25 +1,38 @@
 package com.dk.platform.eventTasker.process;
 
 import com.dk.platform.Process;
+import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
-import com.dk.platform.eventManager.util.ManagerUtil;
+import com.dk.platform.eventTasker.util.TaskerUtil;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsMapMessage;
+import com.tibco.tibjms.admin.TibjmsAdminException;
 
 import javax.jms.*;
 
 public class ReceiverProcess implements Runnable, Consumer, Process {
 
+    private Connection connection;
     private Session session;
     private MessageConsumer msgConsumer;
     private Destination destination;
     private int ackMode;
-    private boolean active = false;
+    private boolean active = true;
+    private TaskerUtil taskerUtil = null;
 
     public ReceiverProcess(String name, int ackMode, boolean isTopic) throws JMSException {
 
+        this.taskerUtil = new TaskerUtil();
+
         this.ackMode = ackMode;
-        session = ManagerUtil.getConnection().createSession(ackMode);
+        try {
+            this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            this.session = this.connection.createSession(ackMode);
+        } catch (TibjmsAdminException e) {
+            e.printStackTrace();
+        }
+
         destination = (isTopic) ? session.createTopic(name) : session.createQueue(name);
         msgConsumer = session.createConsumer(destination);
 
@@ -94,6 +107,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
     }
 
     public static void main(String[] args) throws JMSException {
+        new ReceiverProcess("h", Session.AUTO_ACKNOWLEDGE, false).run();
 
     }
 }

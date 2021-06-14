@@ -1,44 +1,43 @@
 package com.dk.platform.eventTasker.util;
 
+import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.util.EmsUtil;
 import com.tibco.tibjms.TibjmsConnectionFactory;
 
 import javax.jms.*;
 
 import com.dk.platform.ems.util.tibjmsPerfCommon;
+import com.tibco.tibjms.admin.TibjmsAdminException;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
 public class TaskerUtil extends tibjmsPerfCommon{
 
-    private TibjmsConnectionFactory tibjmsConnectionFactory;
+    private TibCompletionListener completionListener;
+    private Connection connection;
     private Session session;
 
-    private Connection connection;
-    private TibCompletionListener completionListener;
 
-    public TaskerUtil(String url){
-        if(this.connection == null){
-            serverUrl = url;
-            this.prepareConnection();
+
+
+    public TaskerUtil(){
+        if(connection == null){
+            try {
+                this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            } catch (TibjmsAdminException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            this.session = this.connection.createSession(Session.AUTO_ACKNOWLEDGE);
+        } catch (JMSException e) {
+            e.printStackTrace();
         }
         completionListener = new TibCompletionListener();
     }
 
-    private void prepareConnection(){
-
-        try{
-            tibjmsConnectionFactory = new TibjmsConnectionFactory(super.serverUrl);
-            this.connection = tibjmsConnectionFactory.createConnection(super.username, super.password);
-            this.connection.start();
-            this.session  = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            // TODO Sessiom Auto  Ack?
-
-            //Logger.info
-
-        }catch (JMSException e){
-            //Logge Error
-        }
-    }
 
     public void sendQueueMessage(String destinationName, String sendMesage, Map<String,String> properties,
                                  long jmsTimeToLive, boolean async, boolean isPersistent) throws JMSException {

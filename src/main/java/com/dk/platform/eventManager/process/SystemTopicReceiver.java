@@ -6,17 +6,20 @@ package com.dk.platform.eventManager.process;
 
 import com.dk.platform.Process;
 import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsConnectionFactory;
 import com.tibco.tibjms.TibjmsMapMessage;
+import com.tibco.tibjms.admin.TibjmsAdminException;
 
 import javax.jms.*;
 
 public class SystemTopicReceiver implements Runnable, Consumer, Process {
 
     private final String PROPERTY_NAME = "target_name";
+    private Connection connection;
     private Session session;
     private MessageConsumer msgConsumer;
     private Destination destination;
@@ -26,7 +29,12 @@ public class SystemTopicReceiver implements Runnable, Consumer, Process {
     public SystemTopicReceiver(String name, int ackMode, boolean isTopic) throws JMSException {
 
         this.ackMode = ackMode;
-        session = ManagerUtil.getConnection().createSession(ackMode);
+        try {
+            this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            this.session = this.connection.createSession(ackMode);
+        } catch (TibjmsAdminException e) {
+            e.printStackTrace();
+        }
         destination = (isTopic) ? session.createTopic(name) : session.createQueue(name);
         msgConsumer = session.createConsumer(destination);
 
@@ -95,19 +103,19 @@ public class SystemTopicReceiver implements Runnable, Consumer, Process {
                     if(CreatedNewQueueName.startsWith(ConnConf.EMS_WRK_PREFIX.getValue())){
 
                         // Check Receive Count is Null
-                        if(ManagerUtil.getReceiverCount(CreatedNewQueueName) != null){
-
-                            // Check Receiver Count.
-                            if(ManagerUtil.getReceiverCount(CreatedNewQueueName) == 0){
-                                // Assign Task.
-                                System.out.println("Start Assign Task");
-
-                            // Prefix, Not Null,  But Who is Receive This Queue?
-                            }else{
-                                System.out.println("Wrong Case.  Some Tasker didnt close resource.");
-                            }
-
-                        }
+//                        if(EmsUtil.getReceiverCount(CreatedNewQueueName) != null){
+//
+//                            // Check Receiver Count.
+//                            if(EmsUtil.getReceiverCount(CreatedNewQueueName) == 0){
+//                                // Assign Task.
+//                                System.out.println("Start Assign Task");
+//
+//                            // Prefix, Not Null,  But Who is Receive This Queue?
+//                            }else{
+//                                System.out.println("Wrong Case.  Some Tasker didnt close resource.");
+//                            }
+//
+//                        }
                     }
                 }
 

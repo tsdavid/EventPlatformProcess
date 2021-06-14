@@ -1,17 +1,18 @@
 package com.dk.platform.backup;
 
+import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsMapMessage;
+import com.tibco.tibjms.admin.TibjmsAdminException;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
+import javax.jms.*;
 
 public class EmsReceiver_Backup implements Runnable, Consumer {
 
+    private Connection connection;
     private Session session;
     private MessageConsumer msgConsumer;
     private Destination destination;
@@ -21,7 +22,12 @@ public class EmsReceiver_Backup implements Runnable, Consumer {
     public EmsReceiver_Backup(String name, int ackMode, boolean isTopic) throws JMSException {
 
         this.ackMode = ackMode;
-        session = ManagerUtil.getConnection().createSession(ackMode);
+        try {
+            this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            this.session = this.connection.createSession(ackMode);
+        } catch (TibjmsAdminException e) {
+            e.printStackTrace();
+        }
         destination = (isTopic) ? session.createTopic(name) : session.createQueue(name);
         msgConsumer = session.createConsumer(destination);
 

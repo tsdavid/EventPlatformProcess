@@ -9,8 +9,8 @@ public class Application {
 
     static {
         try {
-            ManagerUtil.setConnection("tcp://localhost:7222", "admin", "");
-        } catch (JMSException e) {
+            System.out.println("Application Static Block");
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
