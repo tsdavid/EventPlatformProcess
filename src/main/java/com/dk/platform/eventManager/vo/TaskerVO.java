@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 /**
  *  + Work Queue List.
@@ -18,14 +19,16 @@ public class TaskerVO {
     private Timestamp Created_Time;
     private Timestamp Updated_Time;
     private String TaskerName;
-    private String Ems_connection_id;
+    private String WorkQueueList;       // queuename concat with ","
+    private int count;                  // count of managing work queue length.
 
     @Builder
-    public TaskerVO(Timestamp created_Time, Timestamp updated_Time, String taskerName, String ems_connection_id) {
+    public TaskerVO(Timestamp created_Time, Timestamp updated_Time, String taskerName, String workQueueList, int cnt) {
         Created_Time = created_Time;
         Updated_Time = updated_Time;
         TaskerName = taskerName;
-        Ems_connection_id = ems_connection_id;
+        WorkQueueList = workQueueList;
+        count = cnt;
     }
 
     @Override
@@ -34,7 +37,8 @@ public class TaskerVO {
                 "Created_Time=" + Created_Time +
                 ", Updated_Time=" + Updated_Time +
                 ", TaskerName='" + TaskerName + '\'' +
-                ", Ems_connection_id='" + Ems_connection_id + '\'' +
+                ", WorkQueueList='" + WorkQueueList + '\'' +
+                ", count=" + count +
                 '}';
     }
 
@@ -42,11 +46,19 @@ public class TaskerVO {
         Updated_Time = updated_Time;
     }
 
+    public void setCount(int count){
+        this.count = count;
+    }
+
+    public void setWorkQueueList(String workQueueList) {
+        WorkQueueList = workQueueList;
+    }
+
     public static void main(String[] args){
         TaskerVO taskerVO = TaskerVO.builder().created_Time(new Timestamp(System.currentTimeMillis()))
                 .updated_Time(new Timestamp(System.currentTimeMillis()))
                 .taskerName("TaskerName")
-                .ems_connection_id("ems_Connection").build();
+                .build();
 
         System.out.println(
                 taskerVO.toString()

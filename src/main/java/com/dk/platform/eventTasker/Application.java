@@ -1,7 +1,10 @@
 package com.dk.platform.eventTasker;
 
+import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventTasker.process.Initialize;
+import com.dk.platform.eventTasker.process.PeriodicallyReportProcess;
 import com.dk.platform.eventTasker.process.ReceiverProcess;
+import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
 
 import javax.jms.JMSException;
@@ -13,6 +16,14 @@ import javax.jms.Session;
  * 나머지 process는 application에서 설정된 util만을 사용한다.
  */
 public class Application implements com.dk.platform.Application {
+
+    static {
+        try {
+            System.out.println("Application Static Block");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private Initialize initialize;
 
@@ -29,16 +40,28 @@ public class Application implements com.dk.platform.Application {
             this.initialize = new Initialize();
         }
 
-        String MyName = this.initialize.getProcessName();
+        String MyName = MemoryStorage.getInstance().getPROCESS_NAME();
         System.out.println(MyName);
 
         // Run all Process.
         try {
-            new ReceiverProcess(MyName, Session.AUTO_ACKNOWLEDGE, false).run();
+            ReceiverProcess receiverProcess = new ReceiverProcess(MyName, Session.AUTO_ACKNOWLEDGE, false);
+            receiverProcess.setActive();
+            Thread thread = new Thread(receiverProcess);
+            thread.start();
         } catch (JMSException e) {
             e.printStackTrace();
         }
+
+        try {
+            PeriodicallyReportProcess periodicallyReportProcess = new PeriodicallyReportProcess();
+            Thread thread1 = new Thread(periodicallyReportProcess);
+            thread1.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
 
     public static void main(String[] args) {

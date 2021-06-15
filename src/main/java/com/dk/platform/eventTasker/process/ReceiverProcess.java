@@ -4,6 +4,7 @@ import com.dk.platform.Process;
 import com.dk.platform.ems.ConnConf;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
+import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsMapMessage;
@@ -19,17 +20,22 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
     private Destination destination;
     private int ackMode;
     private boolean active = true;
+
+    private MemoryStorage memoryStorage = MemoryStorage.getInstance();
     private TaskerUtil taskerUtil = null;
+    private EmsUtil emsUtil = null;
+
 
     public ReceiverProcess(String name, int ackMode, boolean isTopic) throws JMSException {
 
-        this.taskerUtil = new TaskerUtil();
+        this.taskerUtil = memoryStorage.getTaskerUtil();
+        this.emsUtil = memoryStorage.getEmsUtil();
 
         this.ackMode = ackMode;
         try {
-            this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            this.connection = emsUtil.getEmsConnection();
             this.session = this.connection.createSession(ackMode);
-        } catch (TibjmsAdminException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -37,6 +43,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
         msgConsumer = session.createConsumer(destination);
 
     }
+
 
     @Override
     public void setActive(){
@@ -72,11 +79,11 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
     @Override
     public void run() {
 
-        System.out.println("Runnalbe Run Cnt active status : " + active);
+//        System.out.println("Runnalbe Run Cnt active status : " + active);
 
 
         while(active){
-            System.out.println("Runnalbe Run While Start : ");
+//            System.out.println("Runnalbe Run While Start : ");
 
 
             Message message = null;

@@ -11,6 +11,7 @@ import com.tibco.tibjms.admin.TibjmsAdminException;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class TaskerUtil extends tibjmsPerfCommon{
@@ -18,8 +19,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
     private TibCompletionListener completionListener;
     private Connection connection;
     private Session session;
-
-
+    private MemoryStorage memoryStorage = MemoryStorage.getInstance();
 
 
     public TaskerUtil(){
@@ -38,11 +38,54 @@ public class TaskerUtil extends tibjmsPerfCommon{
         completionListener = new TibCompletionListener();
     }
 
+    public TaskerUtil(EmsUtil emsUtil) {
+        this.connection = emsUtil.getEmsConnection();
+        try {
+            this.session = this.connection.createSession(Session.AUTO_ACKNOWLEDGE);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+        completionListener = new TibCompletionListener();
+
+    }
+
+    public void sendHealthCheckMessage() {
+        // Destination Information.
+        String toManager = ConnConf.EMS_MNG_QUEUE_NAME.getValue();
+
+        // Send Message. Get All Work Queue.
+        String msg = "";
+        for(String k : memoryStorage.getQueueMap().keySet()){
+            msg = msg.concat(k+",");
+        }
+
+        // Set-up For Properties.
+        Map<String,String> properties = new HashMap<>();
+        properties.put(ConnConf.MSG_TYPE.getValue(), ConnConf.TSK_HLTH_MNG_VAL.getValue());
+        properties.put(ConnConf.TSK_HLTH_FROM_PROP.getValue(),memoryStorage.getPROCESS_NAME());
+        try {
+            this.sendSyncQueueMessage(toManager, msg, properties, true);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendASyncQueueMessage(String destinationName, String sendMesage, Map<String,String> properties,
+                                     boolean isPersistent) throws JMSException {
+
+        this.sendMessage(destinationName, sendMesage, properties, 0, true, true, isPersistent);
+    }
+
+    public void sendSyncQueueMessage(String destinationName, String sendMesage, Map<String,String> properties,
+                           boolean isPersistent) throws JMSException {
+
+        this.sendMessage(destinationName, sendMesage, properties, 0, false, true, isPersistent);
+    }
 
     public void sendQueueMessage(String destinationName, String sendMesage, Map<String,String> properties,
                                  long jmsTimeToLive, boolean async, boolean isPersistent) throws JMSException {
 
-        this.sendMessage(destinationName, sendMesage, properties, jmsTimeToLive, async, true, isPersistent);
+        this.sendMessage(destinationName, sendMesage, properties, 0, async, true, isPersistent);
     }
 
 

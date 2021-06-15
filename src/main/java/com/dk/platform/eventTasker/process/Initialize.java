@@ -3,6 +3,7 @@ package com.dk.platform.eventTasker.process;
 import com.dk.platform.Process;
 import com.dk.platform.ems.ConnConf;
 import com.dk.platform.ems.util.EmsUtil;
+import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
 import com.tibco.tibjms.admin.QueueInfo;
 import com.tibco.tibjms.admin.TibjmsAdminException;
@@ -27,16 +28,23 @@ public class Initialize implements Process {
 
     public Initialize() {
 
+        // Set-Up Essential Instance.
         try{
             emsUtil = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue());
             taskerUtil = new TaskerUtil();
-//            this.MYNAME = this.setTaskerProcessName();
-            this.MYNAME = this.setTaskerProcessNameWithCheckReceiverCount();
+            this.MYNAME = this.setTaskerName();
 
         }catch (Exception e){
             e.printStackTrace();
         }
 
+        // Store to Memory Storage.
+        MemoryStorage.getInstance().setPROCESS_NAME(MYNAME);
+        MemoryStorage.getInstance().setEmsUtil(this.emsUtil);
+        MemoryStorage.getInstance().setTaskerUtil(this.taskerUtil);
+
+
+        // Let Manager TSK run.
         try {
             this.sendInitMsgToManager();
         }catch (Exception e){
@@ -51,7 +59,7 @@ public class Initialize implements Process {
 
         // Set-up Message Properties.
         Map<String, String> init_properties = new HashMap<>();
-        init_properties.put(ConnConf.MSG_TYPE.getValue(), ConnConf.TSK_INIT_MNG_PROP.getValue());
+        init_properties.put(ConnConf.MSG_TYPE.getValue(), ConnConf.TSK_INIT_MNG_VAL.getValue());
         try {
             taskerUtil.sendQueueMessage(ConnConf.EMS_MNG_QUEUE_NAME.getValue(), this.MYNAME,init_properties,
                     0, false, true);
@@ -61,65 +69,85 @@ public class Initialize implements Process {
         }
     }
 
-
     /**
-     * Simple Version.
+     * Set-Up For Tasker Name.
      * @return
      */
-    private String setTaskerProcessName() {
+    private String setTaskerName() {
 
-        String[] activeTaskersName = emsUtil.getQueueNames(ConnConf.EMS_TSK_PREFIX.getValue());
-
-        // if no tasker is in server.
-        // set first tasker.
-        if(activeTaskersName == null) return ConnConf.EMS_TSK_PREFIX.getValue().concat("1");
-        // if  not numbering with name.
-        else return ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(activeTaskersName.length + 1));
-    }
-
-    /**
-     * Set Process Name with Checking Receiver Count.
-     * @return
-     */
-    private String setTaskerProcessNameWithCheckReceiverCount() {
-
-        QueueInfo[] queueInfos = emsUtil.getQueueInfos(ConnConf.EMS_TSK_PREFIX.getValue());
-
-        // if no tasker is in server.
-        // set first tasker.
-        if(queueInfos == null) return ConnConf.EMS_TSK_PREFIX.getValue().concat("1");
-            // if  not numbering with name.
-        else {
-            int min = 999;
-            for(QueueInfo queueInfo : queueInfos){
-                if(queueInfo.getReceiverCount() != 0) continue;
-                int num = Integer.parseInt(queueInfo.getName().split(ConnConf.EMS_TSK_PREFIX.getValue())[1]);
-                if(num < min) min = num;
-            }
-            if (min != 999) return ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(min));
-            else return ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(queueInfos.length + 1));
+        for(int i=1;; i++){
+            String possibleName = ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
+            QueueInfo queueInfo = emsUtil.getQueueInfo(possibleName);
+            // Does QueueName is not exist in Server, then use it !.
+            if(queueInfo == null) return possibleName;
+                // If Exist, then Does it have receiver?, if not => use it!.
+            else if(queueInfo.getReceiverCount() == 0) return possibleName;
         }
-    }
 
-    public String getProcessName() {
-        if(MYNAME == null) {
-            this.setTaskerProcessName();
-        }
-        return MYNAME;
     }
-
 
 
 
     public static void main(String[] args) throws TibjmsAdminException {
 
-        EmsUtil emsUtil = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue());
-        System.out.println(Arrays.toString(emsUtil.getQueueNames(ConnConf.EMS_TSK_PREFIX.getValue())));
-        for(String name : emsUtil.getQueueNames(ConnConf.EMS_TSK_PREFIX.getValue())){
-            System.out.println(
-                    name.split(ConnConf.EMS_TSK_PREFIX.getValue())[1]
-            );
-        }
+//        EmsUtil emsUtil = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue());
+//        System.out.println(Arrays.toString(emsUtil.getQueueNames(ConnConf.EMS_TSK_PREFIX.getValue())));
+//        for(String name : emsUtil.getQueueNames(ConnConf.EMS_TSK_PREFIX.getValue())){
+//            System.out.println(
+//                    name.split(ConnConf.EMS_TSK_PREFIX.getValue())[1]
+//            );
+//        }
     }
 
+//    /**
+//     * Set Process Name with Checking Receiver Count.
+//     * Logic Error. When 3, 4 Tasker is Active Case. and Only 4 Tasker has Receiver.
+//     * Cannot Get Name With 1.
+//     * @return
+//     */
+//    @Deprecated
+//    private String setTaskerProcessNameWithCheckReceiverCount() {
+//
+//        QueueInfo[] queueInfos = emsUtil.getQueueInfos(ConnConf.EMS_TSK_PREFIX.getValue());
+//
+//        // if no tasker is in server.
+//        // set first tasker.
+//        if(queueInfos == null) return ConnConf.EMS_TSK_PREFIX.getValue().concat("1");
+//            // if  not numbering with name.
+//        else {
+//            int min = 999;
+//            for(QueueInfo queueInfo : queueInfos){
+//                if(queueInfo.getReceiverCount() != 0) continue;
+//                int num = Integer.parseInt(queueInfo.getName().split(ConnConf.EMS_TSK_PREFIX.getValue())[1]);
+//                if(num < min) min = num;
+//            }
+//            if (min != 999) return ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(min));
+//            else return ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(queueInfos.length + 1));
+//        }
+//    }
+
+
+//    /**
+//     * Simple Version.
+//     * @return
+//     */
+//    @Deprecated
+//    private String setTaskerProcessName() {
+//
+//        String[] activeTaskersName = emsUtil.getQueueNames(ConnConf.EMS_TSK_PREFIX.getValue());
+//
+//        // if no tasker is in server.
+//        // set first tasker.
+//        if(activeTaskersName == null) return ConnConf.EMS_TSK_PREFIX.getValue().concat("1");
+//            // if  not numbering with name.
+//        else return ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(activeTaskersName.length + 1));
+//    }
+//
+//    @Deprecated
+//    public String getProcessName() {
+//        if(MYNAME == null) {
+//            this.setTaskerProcessName();
+//        }
+//        return MYNAME;
+//    }
 }

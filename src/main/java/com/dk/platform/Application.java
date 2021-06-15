@@ -1,6 +1,6 @@
 package com.dk.platform;
 
-public interface Application {
+public interface Application{
 
     void initialize();
 }

@@ -21,12 +21,10 @@ public class VoTest {
                 .created_Time(timestamp)
                 .updated_Time(timestamp)
                 .taskerName(name)
-                .ems_connection_id(conId)
                 .build();
 
         // then
         assertThat(taskerVO.getTaskerName()).isEqualTo(name);
-        assertThat(taskerVO.getEms_connection_id()).isEqualTo(conId);
         assertThat(taskerVO.getCreated_Time()).isEqualTo(timestamp);
     }
 
