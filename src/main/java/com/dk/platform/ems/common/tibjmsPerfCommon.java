@@ -1,4 +1,4 @@
-package com.dk.platform.ems.util;/*
+package com.dk.platform.ems.common;/*
  * Copyright (c) 2009-2016 TIBCO Software Inc. 
  * All Rights Reserved. Confidential & Proprietary.
  * For more information, please contact:

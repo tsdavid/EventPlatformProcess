@@ -1,7 +1,7 @@
 package com.dk.platform.eventTasker.process;
 
 import com.dk.platform.Process;
-import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
@@ -30,9 +30,9 @@ public class Initialize implements Process {
 
         // Set-Up Essential Instance.
         try{
-            emsUtil = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue());
+            emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
             taskerUtil = new TaskerUtil();
-            this.MYNAME = this.setTaskerName();
+            this.MYNAME = this.taskerUtil.setTaskerName();
 
         }catch (Exception e){
             e.printStackTrace();
@@ -59,9 +59,9 @@ public class Initialize implements Process {
 
         // Set-up Message Properties.
         Map<String, String> init_properties = new HashMap<>();
-        init_properties.put(ConnConf.MSG_TYPE.getValue(), ConnConf.TSK_INIT_MNG_VAL.getValue());
+        init_properties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_INIT_MNG_VAL.getValue());
         try {
-            taskerUtil.sendQueueMessage(ConnConf.EMS_MNG_QUEUE_NAME.getValue(), this.MYNAME,init_properties,
+            emsUtil.sendQueueMessage(AppPro.EMS_MNG_QUEUE_NAME.getValue(), this.MYNAME,init_properties,
                     0, false, true);
         } catch (JMSException e) {
             System.out.println("Error WIth Send Message.");
@@ -76,7 +76,7 @@ public class Initialize implements Process {
     private String setTaskerName() {
 
         for(int i=1;; i++){
-            String possibleName = ConnConf.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
+            String possibleName = AppPro.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
             QueueInfo queueInfo = emsUtil.getQueueInfo(possibleName);
             // Does QueueName is not exist in Server, then use it !.
             if(queueInfo == null) return possibleName;

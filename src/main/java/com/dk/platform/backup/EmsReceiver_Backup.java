@@ -1,9 +1,8 @@
 package com.dk.platform.backup;
 
-import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
-import com.dk.platform.eventManager.util.ManagerUtil;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsMapMessage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
@@ -23,7 +22,7 @@ public class EmsReceiver_Backup implements Runnable, Consumer {
 
         this.ackMode = ackMode;
         try {
-            this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
             this.session = this.connection.createSession(ackMode);
         } catch (TibjmsAdminException e) {
             e.printStackTrace();

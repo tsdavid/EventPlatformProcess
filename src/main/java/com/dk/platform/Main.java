@@ -1,6 +1,7 @@
 package com.dk.platform;
 
-import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
 
@@ -13,8 +14,10 @@ public class Main {
 	
 	public static void main(String[] args) {
 
-		new Main();
+//		new Main();
 
+		Logger logger = LoggerFactory.getLogger(Main.class);
+		logger.info("[{}] Hello Worlds", "hi");
 	}
 
 }

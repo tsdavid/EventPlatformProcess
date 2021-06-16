@@ -5,17 +5,20 @@ package com.dk.platform.eventManager.process;
 
 
 import com.dk.platform.Process;
-import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
+import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.Tibjms;
-import com.tibco.tibjms.TibjmsConnectionFactory;
 import com.tibco.tibjms.TibjmsMapMessage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 
 import javax.jms.*;
 
+/**
+ * Receive New Queue -> Assign or Save in Set
+ */
 public class SystemTopicReceiver implements Runnable, Consumer, Process {
 
     private final String PROPERTY_NAME = "target_name";
@@ -26,17 +29,29 @@ public class SystemTopicReceiver implements Runnable, Consumer, Process {
     private int ackMode;
     private boolean active = false;
 
+    private MemoryStorage memoryStorage;
+
+    private EmsUtil emsUtil;
+
+    private ManagerUtil managerUtil;
+
     public SystemTopicReceiver(String name, int ackMode, boolean isTopic) throws JMSException {
 
         this.ackMode = ackMode;
         try {
-            this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
             this.session = this.connection.createSession(ackMode);
         } catch (TibjmsAdminException e) {
             e.printStackTrace();
         }
         destination = (isTopic) ? session.createTopic(name) : session.createQueue(name);
         msgConsumer = session.createConsumer(destination);
+
+
+        // Set-Up Instance
+        this.memoryStorage = MemoryStorage.getInstance();
+        this.emsUtil = this.memoryStorage.getEmsUtil();
+        this.managerUtil = this.memoryStorage.getManagerUtil();
 
     }
 
@@ -75,11 +90,11 @@ public class SystemTopicReceiver implements Runnable, Consumer, Process {
     @Override
     public void run() {
 
-        System.out.println("Runnalbe Run Cnt active status : " + active);
+//        System.out.println("Runnalbe Run Cnt active status : " + active);
 
 
         while(active){
-            System.out.println("Runnalbe Run While Start : ");
+//            System.out.println("Runnalbe Run While Start : ");
 
 
             TibjmsMapMessage message = null;
@@ -87,36 +102,28 @@ public class SystemTopicReceiver implements Runnable, Consumer, Process {
                 message = (TibjmsMapMessage) msgConsumer.receive();
 
                 // Get Queue Name.
-                String CreatedNewQueueName = null;
+                String newQueue = null;
                 try{
-                    CreatedNewQueueName = message.getStringProperty(PROPERTY_NAME);
+                    newQueue = message.getStringProperty(PROPERTY_NAME);
 
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                System.out.println(message.getStringProperty(PROPERTY_NAME));
+//                System.out.println(message.getStringProperty(PROPERTY_NAME));
 
 
                 // Check WRK Queue Prefix.
-                if(CreatedNewQueueName != null){
+                if(newQueue != null && newQueue.startsWith(AppPro.EMS_WRK_PREFIX.getValue())){
 
-                    if(CreatedNewQueueName.startsWith(ConnConf.EMS_WRK_PREFIX.getValue())){
+                    int receiverCount = emsUtil.getQueueInfo(newQueue).getReceiverCount();
+                    // Check Receiver Count is 0 ==> De-Active Queue
+                    if(receiverCount == 0){
+                        String assignableTasker = managerUtil.findIdleTasker();
+                        managerUtil.assignWrkQtoTSK(newQueue, assignableTasker);
 
-                        // Check Receive Count is Null
-//                        if(EmsUtil.getReceiverCount(CreatedNewQueueName) != null){
-//
-//                            // Check Receiver Count.
-//                            if(EmsUtil.getReceiverCount(CreatedNewQueueName) == 0){
-//                                // Assign Task.
-//                                System.out.println("Start Assign Task");
-//
-//                            // Prefix, Not Null,  But Who is Receive This Queue?
-//                            }else{
-//                                System.out.println("Wrong Case.  Some Tasker didnt close resource.");
-//                            }
-//
-//                        }
+                        System.out.println("New Queue : " + newQueue + " has been assigned to " + assignableTasker);
                     }
+
                 }
 
             } catch (JMSException e) {

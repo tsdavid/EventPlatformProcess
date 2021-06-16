@@ -1,12 +1,10 @@
 package com.dk.platform.eventManager.process;
 
-import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
-
-import java.util.Arrays;
 
 /**
  * Manager Initialize
@@ -25,7 +23,7 @@ public class Initialize {
 
         // Set-Up Essential Instance.
         try{
-            this.emsUtil = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue());
+            this.emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
             this.managerUtil = new ManagerUtil();
 
         }catch (Exception e){
@@ -48,18 +46,18 @@ public class Initialize {
         String[] deactiveWrkQs = this.scanDeActiveWorkQueue();
 
         // if tasker is in Map.
-        boolean assignable = MemoryStorage.getInstance().getTasker_Mng_Map().size() > 0;
+        String assignableTasker = managerUtil.findIdleTasker();
         for(String Wq : deactiveWrkQs){
-            if(assignable) managerUtil.assignWrkQtoTSK(Wq); // // Assign De-Active WRK Q to Tasker.
+            if(assignableTasker != null) managerUtil.assignWrkQtoTSK(Wq, assignableTasker); // Assign De-Active WRK Q to Tasker.
             else{   // IF No Tasker in Map. Save in Tmp Set.
-                MemoryStorage.getInstance().getTmp_WRK_Queue().add(Wq);
+                managerUtil.saveWrkQtoTMP(Wq);
             }
         }
     }
 
 
     private String[] scanDeActiveWorkQueue() {
-        return emsUtil.getAct_or_DeAct_QueueNames(ConnConf.EMS_WRK_PREFIX.getValue(), 0);
+        return emsUtil.getAct_or_DeAct_QueueNames(AppPro.EMS_WRK_PREFIX.getValue(), 0);
     }
 
 
@@ -67,7 +65,7 @@ public class Initialize {
     public static void main(String[] args) {
         try {
 
-            EmsUtil emsUtil = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue());
+            EmsUtil emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
 //            String[] arr = emsUtil.getActivewithPending(ConnConf.EMS_WRK_PREFIX.getValue(), 5);
 
 //            System.out.println(

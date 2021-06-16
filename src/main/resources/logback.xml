@@ -1,0 +1,19 @@
+<configuration scan="true" scanPeriod="30 seconds">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+<!--            <pattern>[%d{HH:mm:ss.SSS}][%-5level][%logger{36}.%method:line%line] - %msg%n</pattern>-->
+            <pattern>%d{[yyyy-MM-dd][HH:mm:ss.SSS]}[%-5level][%logger{36}][%method][%thread][line%line]%msg%n</pattern>
+        </encoder>
+    </appender>
+
+<!--    <logger name="com.dk.platform" level="INFO" additivity="false">-->
+<!--        <appender-ref ref="console" />-->
+<!--    </logger>-->
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+
+</configuration>
+

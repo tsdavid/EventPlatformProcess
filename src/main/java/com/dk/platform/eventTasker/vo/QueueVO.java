@@ -1,5 +1,6 @@
 package com.dk.platform.eventTasker.vo;
 
+import com.dk.platform.eventTasker.subProcess.WorkQueueReceiverSubProcess;
 import com.dk.platform.eventTasker.util.MemoryStorage;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,12 +15,14 @@ public class QueueVO {
     private String QueueName;
     private Timestamp Created_Time;
     private String Status;
+    private WorkQueueReceiverSubProcess subprocess;
 
     @Builder
-    public QueueVO(String queueName, Timestamp created_Time, String status) {
+    public QueueVO(String queueName, Timestamp created_Time, String status, WorkQueueReceiverSubProcess subProcess) {
         QueueName = queueName;
         Created_Time = created_Time;
         Status = status;
+        subprocess = subProcess;
     }
 
     @Override

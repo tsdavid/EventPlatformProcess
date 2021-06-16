@@ -1,6 +1,6 @@
 package com.dk.platform.eventManager.util;
 
-import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 import org.junit.After;
@@ -17,14 +17,14 @@ public class SearchTest {
 
     void setEmsUtil() {
         try {
-            this.emsUtil = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue());
+            this.emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
         } catch (TibjmsAdminException e) {
             e.printStackTrace();
         }
     }
     @After
     public void DestroyQueue(){
-        emsUtil.destroyQueues(ConnConf.EMS_WRK_PREFIX.getValue());
+        emsUtil.destroyQueues(AppPro.EMS_WRK_PREFIX.getValue());
     }
 
 
@@ -35,7 +35,7 @@ public class SearchTest {
         int q_count = 10;
         for(int i=0; i < q_count; i++){
 
-            String destName = ConnConf.EMS_WRK_PREFIX.getValue().concat(String.valueOf(i));
+            String destName = AppPro.EMS_WRK_PREFIX.getValue().concat(String.valueOf(i));
             try {
                 emsUtil.sendAsyncQueueMessage(destName, "", null);
             } catch (JMSException e) {
@@ -45,7 +45,7 @@ public class SearchTest {
 
 
         // then
-        String[] arr = emsUtil.getAct_or_DeAct_QueueNames(ConnConf.EMS_WRK_PREFIX.getValue(), 0);
+        String[] arr = emsUtil.getAct_or_DeAct_QueueNames(AppPro.EMS_WRK_PREFIX.getValue(), 0);
         System.out.println(Arrays.toString(arr));
 
         assertThat(q_count).isEqualTo(arr.length);
@@ -64,7 +64,7 @@ public class SearchTest {
 
         for(int i=0; i < q_count; i++){
 
-            String destName = ConnConf.EMS_WRK_PREFIX.getValue().concat(String.valueOf(i));
+            String destName = AppPro.EMS_WRK_PREFIX.getValue().concat(String.valueOf(i));
             // check pending index.
             if(Arrays.binarySearch(pendingIndex, i) >= 0){
                 for(int j=0; j < threshold+1; j++){
@@ -85,12 +85,12 @@ public class SearchTest {
         }
 
         // Then
-        String[] arr = emsUtil.getDeActivewithPending(ConnConf.EMS_WRK_PREFIX.getValue(), threshold);
+        String[] arr = emsUtil.getDeActivewithPending(AppPro.EMS_WRK_PREFIX.getValue(), threshold);
         System.out.println(Arrays.toString(arr));
 
         // reference https://cornswrold.tistory.com/300
         // all Match ....
-        boolean result = Arrays.stream(arr).allMatch(a -> Arrays.binarySearch(pendingIndex, Integer.parseInt(a.split(ConnConf.EMS_WRK_PREFIX.getValue())[1])) >= 0);
+        boolean result = Arrays.stream(arr).allMatch(a -> Arrays.binarySearch(pendingIndex, Integer.parseInt(a.split(AppPro.EMS_WRK_PREFIX.getValue())[1])) >= 0);
         System.out.println("Test Result : " + result);
         assertThat(true).isEqualTo(result);
 

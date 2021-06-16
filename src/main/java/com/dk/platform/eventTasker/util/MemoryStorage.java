@@ -28,6 +28,12 @@ public class MemoryStorage {
 
     private TaskerUtil taskerUtil;
 
+    /**
+     * Managing Queue in Map.
+     *
+     * Key : Queue Name.
+     * Value : QueueVO.
+     */
     private ConcurrentHashMap<String, QueueVO> QueueMap = null;
 
 
@@ -38,12 +44,14 @@ public class MemoryStorage {
         return PROCESS_NAME;
     }
 
+
     public ConcurrentHashMap<String, QueueVO> getQueueMap() {
         if(QueueMap == null){
-            QueueMap = new ConcurrentHashMap<String, QueueVO>();
+            QueueMap = new ConcurrentHashMap<>();
         }
         return QueueMap;
     }
+
 
     public EmsUtil getEmsUtil() {
         return emsUtil;

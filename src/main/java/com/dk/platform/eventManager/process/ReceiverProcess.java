@@ -1,7 +1,7 @@
 package com.dk.platform.eventManager.process;
 
 import com.dk.platform.Process;
-import com.dk.platform.ems.ConnConf;
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
@@ -12,7 +12,6 @@ import com.tibco.tibjms.admin.TibjmsAdminException;
 
 import javax.jms.*;
 import java.sql.Timestamp;
-import java.util.HashSet;
 
 public class ReceiverProcess implements Runnable, Consumer, Process {
 
@@ -27,18 +26,25 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
     private ManagerUtil managerUtil;
     private EmsUtil emsUtil;
 
-    // Properties
-    private final String TSK_INIT = ConnConf.TSK_INIT_MNG_VAL.getValue();
-    private final String TSK_WRK_STATUS = ConnConf.TSK_HLTH_MNG_VAL.getValue();
-    private final String TSK_RET_WRK = ConnConf.TSK_RET_WRK_MNG_VAL.getValue();
-    private final String TSK_COM_WRK = ConnConf.TSK_COM_WRK_MNG_VAL.getValue();
+
+    /*****************************************************************************************
+     ********************************  Message Properties ************************************
+     ****************************************************************************************/
+
+    private final String TSK_INIT = AppPro.TSK_INIT_MNG_VAL.getValue();
+    private final String TSK_WRK_STATUS = AppPro.TSK_HLTH_MNG_VAL.getValue();
+    private final String TSK_COM_WRK = AppPro.TSK_COM_WRK_MNG_VAL.getValue();
+    private final String TSK_RET_WRK = AppPro.TSK_RBL_RTN_MNG_VAL.getValue();
+
+
 
     public ReceiverProcess(String name, int ackMode, boolean isTopic) throws JMSException {
 
         this.ackMode = ackMode;
         try {
-            this.connection = new EmsUtil(ConnConf.EMS_URL.getValue(), ConnConf.EMS_USR.getValue(), ConnConf.EMS_PWD.getValue()).getEmsConnection();
+            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
             this.session = this.connection.createSession(ackMode);
+
         } catch (TibjmsAdminException e) {
             e.printStackTrace();
         }
@@ -104,18 +110,27 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
 
             // Parsing Message.
             try {
-                String MessageProperty = message.getStringProperty(ConnConf.MSG_TYPE.getValue());
+                String MessageProperty = message.getStringProperty(AppPro.MSG_TYPE.getValue());
                 System.out.println(MessageProperty + " And Message Contents : " + message.getText());
 
-                // if statement
+                // New Tasker Arrive Case.
                 if(MessageProperty.equals(TSK_INIT)) this.taskerInitProcess(message.getText());
+
+                // Receive Tasker's Health Check Message Case.
                 else if(MessageProperty.equals(TSK_WRK_STATUS)){
-                    String messageFrom = message.getStringProperty(ConnConf.TSK_HLTH_FROM_PROP.getValue());
+                    String messageFrom = message.getStringProperty(AppPro.TSK_HLTH_FROM_PROP.getValue());
                     this.taskerReportProcess(messageFrom, message.getText());
                 }
+                // Receive Tasker's Complete Message Case.
+                else if(MessageProperty.equals(TSK_COM_WRK)) {
+                    String messageFrom = message.getStringProperty(AppPro.TSK_HLTH_FROM_PROP.getValue());
+                    this.taskerCompletedWork(messageFrom, message.getText());
+                }
+                // Receive Tasker's returned work queue because of Re-balance case.
+                else if(MessageProperty.equals(TSK_RET_WRK)) {
 
-//                else if(MessageProperty.equals(TSK_RET_WRK)) this.taskerReturnedWrok(message.getText());
-//                else if(MessageProperty.equals(TSK_COM_WRK)) this.taskerCompletedWork(message.getText());
+                    this.taskerReturnedWrok(message.getText());
+                }
 
             } catch (JMSException e) {
                 e.printStackTrace();
@@ -135,13 +150,16 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
                     e.printStackTrace();
                 }
             }
-
-
         }
         System.out.println("Runnalbe Run Break While");
-
     }
 
+
+    /**
+     * 1. Set-Up TaskerVO in Map.
+     * 2. Check Re-Balance.
+     * @param taskerName
+     */
     private void taskerInitProcess(String taskerName){
 
         // Put TaskerVO in Tasker Map.
@@ -149,6 +167,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
                                     .created_Time(new Timestamp(System.currentTimeMillis()))
                                     .updated_Time(new Timestamp(System.currentTimeMillis()))
                                     .taskerName(taskerName)
+                                    .cnt(0).workQueueList("")
                                     .build();
         memoryStorage.getTasker_Mng_Map().put(taskerName, taskerVO);
         System.out.println(memoryStorage.getTasker_Mng_Map().toString());
@@ -158,14 +177,66 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
             this.managerUtil.executeTmpQueue(taskerName);
         }
 
+        // check Re-Balance
+        this.checkRebalancable(taskerName);
+    }
+
+
+    /**
+     *
+     * @param newTaskerName
+     */
+    private void checkRebalancable(String newTaskerName){
+
+        // Check Re-Balance Condition.
+        if(managerUtil.isRebalanceCase(newTaskerName)){
+            // Re-Balance Case. => Send Re-balance Message to O-Tasker to get Returned WRK Q.  Target : tobeThreshold
+            System.out.println(newTaskerName + " It is Re-balance Case. Do Re-Balance Task.");
+            try {
+                // execute Re-balance task.
+                managerUtil.doRebalanceCase(newTaskerName);
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
+
+        }
 
     }
 
+
+    /**
+     *
+     * @param fromDestination
+     * @param workQueues
+     */
     private void taskerReportProcess(String fromDestination, String workQueues){
         System.out.println("taskerReportProcess" + "  ..MEssage From : . " + fromDestination + " queuessss...L " + workQueues);
 
         int cnt = workQueues.split(",").length -1;
         this.managerUtil.updateTaskerHealthCheck(fromDestination, workQueues, cnt);
+
+    }
+
+
+    /**
+     *
+     * @param fromDestination
+     * @param completeQueue
+     */
+    // TODO COMPLETE WORK QUEUE LOGIC
+    private void taskerCompletedWork(String fromDestination, String completeQueue){
+
+        System.out.println("Tasker : " + fromDestination + " Complete Queue : " + completeQueue);
+    }
+
+    /**
+     *
+     * @param returedWorkQueue
+     */
+    private void taskerReturnedWrok(String returedWorkQueue){
+
+        String newAssignedTasker = managerUtil.findIdleTasker();
+        managerUtil.assignWrkQtoTSK(returedWorkQueue, newAssignedTasker);
 
     }
 

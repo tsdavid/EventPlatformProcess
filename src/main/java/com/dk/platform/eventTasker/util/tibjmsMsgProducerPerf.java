@@ -42,8 +42,8 @@ package com.dk.platform.eventTasker.util;/*
  *   -xa                         Use XA transactions.
  */
 
-import com.dk.platform.ems.util.tibjmsPerfCommon;
-import com.dk.platform.ems.util.tibjmsUtilities;
+import com.dk.platform.ems.common.tibjmsPerfCommon;
+import com.dk.platform.ems.common.tibjmsUtilities;
 
 import java.io.*;
 import java.util.*;
