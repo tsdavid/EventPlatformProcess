@@ -245,4 +245,9 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
         String str = "F1.EEP.WRK.TEST2,F1.EEP.WRK.TEST1,F1.EEP.WRK.TEST4,F1.EEP.WRK.TEST3,";
         System.out.println(str.split(",").length -1);
     }
+
+    @Override
+    public void setUpInstance() {
+
+    }
 }

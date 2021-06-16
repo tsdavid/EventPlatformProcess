@@ -57,7 +57,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
     /**
      * Essential Instance
      */
-    private void setUpInstance(){
+    public void setUpInstance(){
 
         this.memoryStorage = MemoryStorage.getInstance();
 

@@ -182,4 +182,9 @@ public class SystemTopicReceiver implements Runnable, Consumer, Process {
     public static void main(String[] args) throws JMSException {
 
     }
+
+    @Override
+    public void setUpInstance() {
+
+    }
 }

@@ -1,4 +1,4 @@
-package com.dk.platform.eventTasker.util;/*
+package com.dk.platform.ems.common;/*
  * Copyright (c) 2002-2016 TIBCO Software Inc.
  * All Rights Reserved. Confidential & Proprietary.
  * For more information, please contact:
@@ -679,6 +679,6 @@ public class tibjmsMsgProducerPerf extends tibjmsPerfCommon implements Runnable 
      * main
      */
     public static void main(String[] args) {
-        tibjmsMsgProducerPerf t = new tibjmsMsgProducerPerf(args);
+//        tibjmsMsgProducerPerf t = new tibjmsMsgProducerPerf(args);
     }
 }

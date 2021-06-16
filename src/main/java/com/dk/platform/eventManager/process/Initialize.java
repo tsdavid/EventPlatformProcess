@@ -1,12 +1,19 @@
 package com.dk.platform.eventManager.process;
 
+import com.dk.platform.Process;
 import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ *
+ *
+ * 1. Manager Application Initialize.
+ *
  * Manager Initialize
  * Search Work Queue and TSK on EMS Server. => put WRK.Q to Q Map, TSK.Q to Q Map
  * If> WRK.Q and TSK is exist, assign to TSK
@@ -14,10 +21,32 @@ import com.tibco.tibjms.admin.TibjmsAdminException;
  *
  *
  */
-public class Initialize {
+public class Initialize implements Process {
+
+
+    /*****************************************************************************************
+     **************************************  Logger ******************************************
+     ****************************************************************************************/
+
+
+    private static final Logger logger = LoggerFactory.getLogger(Initialize.class);
+
+
+    /*****************************************************************************************
+     ***********************************  Variables ******************************************
+     ****************************************************************************************/
+
+    private MemoryStorage memoryStorage;
 
     private EmsUtil emsUtil;
+
     private ManagerUtil managerUtil;
+
+
+    /*****************************************************************************************
+     ***********************************  Constructor ****************************************
+     ****************************************************************************************/
+
 
     public Initialize() {
 
@@ -27,6 +56,7 @@ public class Initialize {
             this.managerUtil = new ManagerUtil();
 
         }catch (Exception e){
+            logger.error("[{}] Error : {}/{}.","Constructor", e.getMessage(), e.toString());
             e.printStackTrace();
         }
 
@@ -37,6 +67,24 @@ public class Initialize {
         // Scan Ems
         this.scanEmsServer();
     }
+
+    @Override
+    public void setUpInstance() {
+
+        this.memoryStorage = MemoryStorage.getInstance();
+
+        this.emsUtil = memoryStorage.getEmsUtil();
+
+        this.managerUtil = memoryStorage.getManagerUtil();
+
+    }
+
+
+
+    /*****************************************************************************************
+     ***********************************  Scan Logic *****************************************
+     *****************************************************************************************/
+
 
     /**
      * Assign DeActive WRK Q to Active TSK.
@@ -50,7 +98,7 @@ public class Initialize {
         for(String Wq : deactiveWrkQs){
             if(assignableTasker != null) managerUtil.assignWrkQtoTSK(Wq, assignableTasker); // Assign De-Active WRK Q to Tasker.
             else{   // IF No Tasker in Map. Save in Tmp Set.
-                managerUtil.saveWrkQtoTMP(Wq);
+                managerUtil.saveWorkQueueToTMP(Wq);
             }
         }
     }

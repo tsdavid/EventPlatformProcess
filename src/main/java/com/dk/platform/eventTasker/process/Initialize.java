@@ -99,6 +99,11 @@ public class Initialize implements Process {
 //        }
     }
 
+    @Override
+    public void setUpInstance() {
+
+    }
+
 //    /**
 //     * Set Process Name with Checking Receiver Count.
 //     * Logic Error. When 3, 4 Tasker is Active Case. and Only 4 Tasker has Receiver.

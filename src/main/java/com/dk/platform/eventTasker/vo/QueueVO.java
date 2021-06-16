@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
+/**
+ * Main Job
+ * 1. Create VO
+ */
 @Getter
 @NoArgsConstructor
 public class QueueVO {
@@ -17,6 +21,14 @@ public class QueueVO {
     private String Status;
     private WorkQueueReceiverSubProcess subprocess;
 
+
+    /**
+     *
+     * @param queueName         :       Work Queue Name.
+     * @param created_Time      :       QueueVO Created Time
+     * @param status            :       Queue Working Status... // TODO THINK BETTER ==> Does Queue Status Need?.
+     * @param subProcess        :       Receiver Process which Work Queue Name.  {@link WorkQueueReceiverSubProcess}
+     */
     @Builder
     public QueueVO(String queueName, Timestamp created_Time, String status, WorkQueueReceiverSubProcess subProcess) {
         QueueName = queueName;
@@ -25,14 +37,21 @@ public class QueueVO {
         subprocess = subProcess;
     }
 
+
     @Override
     public String toString() {
         return "QueueVO{" +
                 "QueueName='" + QueueName + '\'' +
                 ", Created_Time=" + Created_Time +
                 ", Status='" + Status + '\'' +
+                ", subprocess=" + subprocess.getClass().getSimpleName() +
                 '}';
     }
+
+    /*****************************************************************************************
+     *************************************  Main *********************************************
+     ****************************************************************************************/
+
 
     public static void main(String[] args) {
         QueueVO queueVO = QueueVO.builder()

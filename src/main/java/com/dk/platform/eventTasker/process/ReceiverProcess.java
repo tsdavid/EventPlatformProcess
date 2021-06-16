@@ -217,4 +217,9 @@ public class ReceiverProcess implements Runnable, Consumer, Process {
         new ReceiverProcess("h", Session.AUTO_ACKNOWLEDGE, false).run();
 
     }
+
+    @Override
+    public void setUpInstance() {
+
+    }
 }

@@ -1,4 +1,4 @@
-package com.dk.platform.ems;
+package com.dk.platform.ems.common;
 
 public enum EmsConnConf {
 

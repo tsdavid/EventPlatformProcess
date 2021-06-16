@@ -8,10 +8,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 
 /**
- *  + Work Queue List.
- *  + Tasker Status.
+ * Main Job
+ * 1. Create Tasker VO.
  */
-
 @Getter
 @NoArgsConstructor
 public class TaskerVO {
@@ -22,6 +21,15 @@ public class TaskerVO {
     private String WorkQueueList;       // queuename concat with ","
     private int count;                  // count of managing work queue length.
 
+
+    /**
+     *
+     * @param created_Time          :       TaskerVO Created Time.
+     * @param updated_Time          :       recently Update Time when Tasker's Health Check.
+     * @param taskerName            :       Tasker Name.
+     * @param workQueueList         :       Work Queue List owned by Tasker.
+     * @param cnt                   :       Count of Work Queues
+     */
     @Builder
     public TaskerVO(Timestamp created_Time, Timestamp updated_Time, String taskerName, String workQueueList, int cnt) {
         Created_Time = created_Time;
@@ -30,6 +38,7 @@ public class TaskerVO {
         WorkQueueList = workQueueList;
         count = cnt;
     }
+
 
     @Override
     public String toString() {
@@ -42,17 +51,38 @@ public class TaskerVO {
                 '}';
     }
 
+
+    /**
+     *
+     * @param updated_Time          :       recently Update Time when Tasker's Health Check.
+     */
     public void setUpdated_Time(Timestamp updated_Time) {
         Updated_Time = updated_Time;
     }
 
+
+    /**
+     *
+     * @param count                   :       Count of Work Queues
+     */
     public void setCount(int count){
         this.count = count;
     }
 
+
+    /**
+     *
+     * @param workQueueList         :       Work Queue List owned by Tasker.
+     */
     public void setWorkQueueList(String workQueueList) {
         WorkQueueList = workQueueList;
     }
+
+
+    /*****************************************************************************************
+     *************************************  Main *********************************************
+     ****************************************************************************************/
+
 
     public static void main(String[] args){
         TaskerVO taskerVO = TaskerVO.builder().created_Time(new Timestamp(System.currentTimeMillis()))

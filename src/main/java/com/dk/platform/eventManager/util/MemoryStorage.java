@@ -2,24 +2,51 @@ package com.dk.platform.eventManager.util;
 
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.vo.TaskerVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Main Job
+ * 1. Singleton
+ * 2. Data Structure
+ */
 public class MemoryStorage {
 
-    private MemoryStorage(){}
+
+    /*****************************************************************************************
+     **************************************  Singleton ***************************************
+     ****************************************************************************************/
+
 
     private static class SingletonHelper {
         private static final MemoryStorage INSTANCE = new MemoryStorage();
     }
 
+
     public static MemoryStorage getInstance() {
         return SingletonHelper.INSTANCE;
     }
 
+
+    /*****************************************************************************************
+     **************************************  Logger ******************************************
+     ****************************************************************************************/
+
+    private static final Logger logger = LoggerFactory.getLogger(MemoryStorage.class);
+
+
+    /*****************************************************************************************
+     ***********************************  Variables ******************************************
+     ****************************************************************************************/
+
+
     private EmsUtil emsUtil;
+
+
     private ManagerUtil managerUtil;
 
 
@@ -32,15 +59,103 @@ public class MemoryStorage {
 
 
     /**
-     * Temporary Work Queue Container.
+     * Temporary Work Queue Set.
      * QueueName
      */
-    private HashSet<String> Tmp_WRK_Queue;
+    private HashSet<String> Tmp_WRK_Set;
+
+
+    /*****************************************************************************************
+     ***********************************  Constructor ****************************************
+     ****************************************************************************************/
+
+
+    private MemoryStorage(){}
+
+
+    /*****************************************************************************************
+     ***********************************  Logic **********************************************
+     *****************************************************************************************/
+    // TODO THINK BETTER  ==> Any Logic ?.
+
+
+
+
+    /*****************************************************************************************
+     ***********************************  Getter *********************************************
+     ****************************************************************************************/
 
 
     /**
-     * LOGIC
+     *
+     * @return          :       HashMap Managing Tasker VO.
      */
+    public ConcurrentHashMap<String, TaskerVO> getTasker_Mng_Map() {
+
+        if(Tasker_Mng_Map == null){
+            Tasker_Mng_Map = new ConcurrentHashMap<String, TaskerVO>();
+        }
+        return Tasker_Mng_Map;
+    }
+
+
+    /**
+     *
+     * @return
+     */
+    public HashSet<String> getTmp_WRK_Queue() {
+
+        if(Tmp_WRK_Set == null){
+            this.Tmp_WRK_Set = new HashSet<>();
+        }
+        return Tmp_WRK_Set;
+    }
+
+
+    /**
+     *
+     * @return          :       {@link EmsUtil}
+     */
+    public EmsUtil getEmsUtil() {
+        return emsUtil;
+    }
+
+
+    /**
+     *
+     * @return          :       {@link ManagerUtil}
+     */
+    public ManagerUtil getManagerUtil() {
+        return managerUtil;
+    }
+
+
+    /*****************************************************************************************
+     ***********************************  Setter *********************************************
+     ****************************************************************************************/
+
+    /**
+     *
+     * @param emsUtil           :       {@link EmsUtil}
+     */
+    public void setEmsUtil(EmsUtil emsUtil) {
+        this.emsUtil = emsUtil;
+    }
+
+
+    /**
+     *
+     * @param managerUtil       :       {@link ManagerUtil}
+     */
+    public void setManagerUtil(ManagerUtil managerUtil) {
+        this.managerUtil = managerUtil;
+    }
+
+
+
+    /*****************************************************************************************
+     *************************************  Deprecated ***************************************
+     ****************************************************************************************/
 
 
     /**
@@ -48,6 +163,7 @@ public class MemoryStorage {
      * Tasker VO  update Time is updated.
      * @param name
      */
+    @Deprecated
     public void updateTaskerHealthCheckTime(String name, Timestamp timestamp){
         if(Tasker_Mng_Map == null){
             return;
@@ -57,54 +173,13 @@ public class MemoryStorage {
     }
 
 
+    /*****************************************************************************************
+     *************************************  Main *********************************************
+     ****************************************************************************************/
 
 
-    /**
-     * Getter
-     */
-    public ConcurrentHashMap<String, TaskerVO> getTasker_Mng_Map() {
-        if(Tasker_Mng_Map == null){
-            Tasker_Mng_Map = new ConcurrentHashMap<String, TaskerVO>();
-        }
-        return Tasker_Mng_Map;
+    public static void main(String[] args) {
+
     }
 
-    public HashSet<String> getTmp_WRK_Queue() {
-        if(Tmp_WRK_Queue == null){
-            this.Tmp_WRK_Queue = new HashSet<>();
-        }
-        return Tmp_WRK_Queue;
-    }
-
-    public EmsUtil getEmsUtil() {
-        return emsUtil;
-    }
-
-    public ManagerUtil getManagerUtil() {
-        return managerUtil;
-    }
-
-    /**
-     * Setter
-     */
-    public void setEmsUtil(EmsUtil emsUtil) {
-        this.emsUtil = emsUtil;
-    }
-
-    public void setManagerUtil(ManagerUtil managerUtil) {
-        this.managerUtil = managerUtil;
-    }
-
-    /**
-     * SELECT COUNT("taskerName") FROM MAP.
-     * @param taskerName
-     */
-//    public Integer getWorkQueueCount(String taskerName){
-//        if(WorkQueue_Mng_Map == null){
-//            return null;
-//        }
-//        int cnt = (int) WorkQueue_Mng_Map.entrySet().stream().filter(entry -> entry.getValue().equals(taskerName)).count();
-//        return cnt;
-//
-//    }
 }

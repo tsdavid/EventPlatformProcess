@@ -3,15 +3,22 @@ package com.dk.platform.eventTasker.util;
 import com.dk.platform.backup.SingleTone;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventTasker.vo.QueueVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Singleton
+ * Main Job
+ * 1. Singleton
+ * 2. Data Structure
  */
 public class MemoryStorage {
 
-    private MemoryStorage(){}
+
+    /*****************************************************************************************
+     **************************************  Singleton ***************************************
+     ****************************************************************************************/
 
     private static class SingletonHelper {
         private static final MemoryStorage INSTANCE = new MemoryStorage();
@@ -21,6 +28,18 @@ public class MemoryStorage {
         return MemoryStorage.SingletonHelper.INSTANCE;
     }
 
+
+    /*****************************************************************************************
+     **************************************  Logger ******************************************
+     ****************************************************************************************/
+
+
+    private static final Logger logerr = LoggerFactory.getLogger(MemoryStorage.class);
+
+
+    /*****************************************************************************************
+     ***********************************  Variables ******************************************
+     ****************************************************************************************/
 
     private String PROCESS_NAME;
 
@@ -37,14 +56,38 @@ public class MemoryStorage {
     private ConcurrentHashMap<String, QueueVO> QueueMap = null;
 
 
+    /*****************************************************************************************
+     ***********************************  Constructor ****************************************
+     ****************************************************************************************/
+
+
+    private MemoryStorage(){}
+
+
+    /*****************************************************************************************
+     ***********************************  Logic **********************************************
+     *****************************************************************************************/
+    // TODO THINK BETTER  ==> Any Logic ?.
+
+
+    /*****************************************************************************************
+     ***********************************  Getter *********************************************
+     ****************************************************************************************/
+
+
     /**
-     * Getter
+     *
+     * @return          :       Process Name.
      */
     public String getPROCESS_NAME(){
         return PROCESS_NAME;
     }
 
 
+    /**
+     *
+     * @return          :       ConcurrentHashMap managing QueueVo.
+     */
     public ConcurrentHashMap<String, QueueVO> getQueueMap() {
         if(QueueMap == null){
             QueueMap = new ConcurrentHashMap<>();
@@ -53,27 +96,59 @@ public class MemoryStorage {
     }
 
 
+    /**
+     *
+     * @return      :       {@link EmsUtil}
+     */
     public EmsUtil getEmsUtil() {
         return emsUtil;
     }
 
+
+    /**
+     *
+     * @return      :       {@link TaskerUtil}
+     */
     public TaskerUtil getTaskerUtil() {
         return taskerUtil;
     }
 
 
+    /*****************************************************************************************
+     ***********************************  Setter *********************************************
+     ****************************************************************************************/
+
     /**
-     * Setter
+     *
+     * @param name          :       Process Name.
      */
     public void setPROCESS_NAME(String name){
         this.PROCESS_NAME = name;
     }
 
+
+    /**
+     *
+     * @param taskerUtil        :       {@link TaskerUtil}
+     */
     public void setTaskerUtil(TaskerUtil taskerUtil) {
         this.taskerUtil = taskerUtil;
     }
 
+
+    /**
+     *
+     * @param emsUtil           :       {@link EmsUtil}
+     */
     public void setEmsUtil(EmsUtil emsUtil) {
         this.emsUtil = emsUtil;
+    }
+
+
+    /*****************************************************************************************
+     *************************************  Main *********************************************
+     ****************************************************************************************/
+    public static void main(String[] args) {
+
     }
 }
