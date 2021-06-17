@@ -101,6 +101,7 @@ public class ManagerUtil {
 
 
     /**
+     * Test Version.
      * Constructor.
      */
     public ManagerUtil(EmsUtil emsUtil){
@@ -117,6 +118,7 @@ public class ManagerUtil {
      * Essential Instance
      */
     private void setUpInstance(){
+
         this.memoryStorage = MemoryStorage.getInstance();
         this.Tasker_Mng_Map = this.memoryStorage.getTasker_Mng_Map();
         this.Tmp_WRK_Queue = this.memoryStorage.getTmp_WRK_Queue();
@@ -126,9 +128,11 @@ public class ManagerUtil {
 
 
     /**
+     * Test Version.
      * Essential Instance
      */
     private void setUpInstance(EmsUtil emsUtil){
+
         this.memoryStorage = MemoryStorage.getInstance();
         this.Tasker_Mng_Map = this.memoryStorage.getTasker_Mng_Map();
         this.Tmp_WRK_Queue = this.memoryStorage.getTmp_WRK_Queue();

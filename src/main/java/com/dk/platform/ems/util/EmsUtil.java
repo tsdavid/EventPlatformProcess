@@ -483,9 +483,9 @@ public class EmsUtil extends tibjmsPerfCommon {
 
         // Set-up Persistent Message
         if(isPersistent) {
-            msgProducer.setDeliveryMode(javax.jms.DeliveryMode.PERSISTENT);
+            msgProducer.setDeliveryMode(DeliveryMode.PERSISTENT);
         }else {
-            msgProducer.setDeliveryMode(javax.jms.DeliveryMode.NON_PERSISTENT);
+            msgProducer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
         }
 
         // Set-Up TTL Message
@@ -514,7 +514,7 @@ public class EmsUtil extends tibjmsPerfCommon {
 
 
     // TODO CompletionListener Logic
-    static class TibCompletionListener implements javax.jms.CompletionListener{
+    static class TibCompletionListener implements CompletionListener{
 
         @Override
         public void onCompletion(Message message) {

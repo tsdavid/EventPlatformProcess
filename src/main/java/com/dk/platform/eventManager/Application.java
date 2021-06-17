@@ -2,8 +2,8 @@ package com.dk.platform.eventManager;
 
 import com.dk.platform.ems.AppPro;
 import com.dk.platform.eventManager.process.ReceiverProcess;
-import com.dk.platform.eventManager.process.SystemTopicReceiver;
-import com.dk.platform.eventTasker.process.Initialize;
+import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
+import com.dk.platform.eventTasker.process.InitializeProcess;
 
 public class Application implements com.dk.platform.Application{
 
@@ -15,22 +15,24 @@ public class Application implements com.dk.platform.Application{
         }
     }
 
-    private Initialize initialize;
+    private InitializeProcess initialize;
 
     @Override
     public void initialize() {
-//        this.initialize = new Initialize();
+        this.initialize = InitializeProcess.builder()
+                            .emsServerUrl(AppPro.EMS_URL.getValue())
+                            .emsUserName(AppPro.EMS_USR.getValue())
+                            .emsPassword(AppPro.EMS_PWD.getValue())
+                            .build();
     }
 
     public Application() {
 
-//        this.initialize();
-//        if(this.initialize == null){
-//            this.initialize = new Initialize();
-//        }
+        this.initialize();
 
         try{
-            SystemTopicReceiver systemTopicReceiver = new SystemTopicReceiver("$sys.monitor.queue.create", 1,true);
+            NewQueueReceiverProcess systemTopicReceiver = new NewQueueReceiverProcess("$sys.monitor.queue.create", 1,true);
+            systemTopicReceiver.setUpInstance();
             systemTopicReceiver.setActive();
             Thread thread = new Thread(systemTopicReceiver);
             thread.start();
@@ -40,6 +42,7 @@ public class Application implements com.dk.platform.Application{
 
         try{
             ReceiverProcess receiverProcess = new ReceiverProcess(AppPro.EMS_MNG_QUEUE_NAME.getValue(), 1, false);
+            receiverProcess.setUpInstance();
             receiverProcess.setActive();
             Thread thread1 = new Thread(receiverProcess);
             thread1.start();
@@ -56,6 +59,7 @@ public class Application implements com.dk.platform.Application{
 
 
     public static void main(String[] args) {
+        new Application();
 
     }
 }

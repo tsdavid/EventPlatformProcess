@@ -25,7 +25,7 @@ public class MemoryStorage {
     }
 
     public static MemoryStorage getInstance() {
-        return MemoryStorage.SingletonHelper.INSTANCE;
+        return SingletonHelper.INSTANCE;
     }
 
 
@@ -34,7 +34,7 @@ public class MemoryStorage {
      ****************************************************************************************/
 
 
-    private static final Logger logerr = LoggerFactory.getLogger(MemoryStorage.class);
+    private static final Logger logger = LoggerFactory.getLogger(MemoryStorage.class);
 
 
     /*****************************************************************************************
@@ -89,10 +89,11 @@ public class MemoryStorage {
      * @return          :       ConcurrentHashMap managing QueueVo.
      */
     public ConcurrentHashMap<String, QueueVO> getQueueMap() {
-        if(QueueMap == null){
-            QueueMap = new ConcurrentHashMap<>();
+        if(this.QueueMap == null){
+            this.QueueMap = new ConcurrentHashMap<>();
         }
-        return QueueMap;
+
+        return this.QueueMap;
     }
 
 

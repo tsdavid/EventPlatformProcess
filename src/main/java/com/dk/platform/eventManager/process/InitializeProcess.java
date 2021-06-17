@@ -6,13 +6,15 @@ import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- *
+ * Main Job
  * 1. Manager Application Initialize.
+ *
  *
  * Manager Initialize
  * Search Work Queue and TSK on EMS Server. => put WRK.Q to Q Map, TSK.Q to Q Map
@@ -21,15 +23,15 @@ import org.slf4j.LoggerFactory;
  *
  *
  */
-public class Initialize implements Process {
+@NoArgsConstructor
+public class InitializeProcess implements Process {
 
 
     /*****************************************************************************************
      **************************************  Logger ******************************************
      ****************************************************************************************/
 
-
-    private static final Logger logger = LoggerFactory.getLogger(Initialize.class);
+    private static final Logger logger = LoggerFactory.getLogger(InitializeProcess.class);
 
 
     /*****************************************************************************************
@@ -42,43 +44,60 @@ public class Initialize implements Process {
 
     private ManagerUtil managerUtil;
 
+    private String emsServerUrl;
+
+    private String emsUserName;
+
+    private String emsPassword;
+
 
     /*****************************************************************************************
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
 
-    public Initialize() {
+    @Builder
+    public InitializeProcess(String emsServerUrl, String emsUserName, String emsPassword){
 
-        // Set-Up Essential Instance.
-        try{
-            this.emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
-            this.managerUtil = new ManagerUtil();
+        this.emsServerUrl = emsServerUrl;
 
-        }catch (Exception e){
-            logger.error("[{}] Error : {}/{}.","Constructor", e.getMessage(), e.toString());
-            e.printStackTrace();
-        }
+        this.emsUserName = emsUserName;
 
-        // Store to Memory Storage
-        MemoryStorage.getInstance().setEmsUtil(this.emsUtil);
-        MemoryStorage.getInstance().setManagerUtil(this.managerUtil);
+        this.emsPassword = emsPassword;
 
-        // Scan Ems
-        this.scanEmsServer();
     }
+
 
     @Override
     public void setUpInstance() {
 
         this.memoryStorage = MemoryStorage.getInstance();
 
-        this.emsUtil = memoryStorage.getEmsUtil();
+        try {
+            this.emsUtil = new EmsUtil(this.emsServerUrl, this.emsUserName, this.emsPassword);
+            this.memoryStorage.setEmsUtil(this.emsUtil);
 
-        this.managerUtil = memoryStorage.getManagerUtil();
+        } catch (TibjmsAdminException e) {
+
+            logger.error("[{}] Cannot Get EmsUtil Instance. Exit System. Error : {}/{}.","ManagerInitialize", e.getMessage(), e.toString());
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        this.managerUtil = new ManagerUtil();
+        this.memoryStorage.setManagerUtil(this.managerUtil);
+
 
     }
 
+
+    @Override
+    public void execute() {
+
+        // Scan Ems
+        this.scanEmsServer();
+
+    }
 
 
     /*****************************************************************************************

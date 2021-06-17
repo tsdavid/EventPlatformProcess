@@ -1,37 +1,45 @@
-package com.dk.platform.eventTasker.process;
+package com.dk.platform.eventManager.process;
+
+// Consumer System topic to get info about new created destination.
+// topic receiver ==> $sys.monitor.queue.create
+
 
 import com.dk.platform.Process;
 import com.dk.platform.Receiver;
 import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
-import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
 import com.dk.platform.eventManager.util.ManagerUtil;
-import com.dk.platform.eventTasker.subProcess.WorkQueueReceiverSubProcess;
-import com.dk.platform.eventTasker.util.MemoryStorage;
-import com.dk.platform.eventTasker.util.TaskerUtil;
-import com.dk.platform.eventTasker.vo.QueueVO;
+import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.Tibjms;
+import com.tibco.tibjms.TibjmsMapMessage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
-import java.util.Map;
 
-public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
+/**
+ * Main Job
+ * 1. Receive New Queue
+ * 2. Send to Next Class.
+ * Receive New Queue -> Assign or Save in Set
+ */
+public class NewQueueReceiverProcess implements Runnable, Consumer, Process, Receiver {
+
 
     /*****************************************************************************************
      **************************************  Logger ******************************************
      ****************************************************************************************/
 
-    private static final Logger logger = LoggerFactory.getLogger(ReceiverProcess.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(NewQueueReceiverProcess.class);
 
 
     /*****************************************************************************************
      ***********************************  Variables ******************************************
      ****************************************************************************************/
+
+    private final String PROPERTY_NAME = AppPro.NEW_QUEUE_CREATE_VAL.getValue();
 
     private Connection connection;
 
@@ -43,33 +51,19 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     private int ackMode;
 
-    private String destName;
-
-    private boolean isTopic;
-
-    private boolean active = true;
+    private boolean active = false;
 
     private MemoryStorage memoryStorage;
 
-    private TaskerUtil taskerUtil;
-
     private EmsUtil emsUtil;
 
+    private ManagerUtil managerUtil;
+
+    private String topicName;
+
+    private boolean  isTopic;
+
     private String ThreadName;
-
-    private String MYNAME;
-
-
-    /*****************************************************************************************
-     ********************************  Message Properties ************************************
-     ****************************************************************************************/
-
-    /* PROP */
-    private final String MSG_TYPE_PROP = AppPro.MSG_TYPE.getValue();
-
-    /* VAL */
-    private final String MNG_RBL_CNT_VAL = AppPro.MNG_RBL_CNT_TSK_VAL.getValue();
-    private final String MNG_ASSIGN_TSK_VAL = AppPro.MNG_ASG_WRK_VAL.getValue();
 
 
     /*****************************************************************************************
@@ -78,31 +72,33 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     /**
      *
-     * @param destName          :           EMS Destination. Receive Message From
+     * @param name      :       Topic Name.
      */
-    public ReceiverProcess(String destName){
-        this(destName, Session.AUTO_ACKNOWLEDGE);
-    }
+    public NewQueueReceiverProcess(String name) {
 
-    /**
-     *
-     * * @param destName          :           EMS Destination. Receive Message From
-     * @param ackMode       :       Ems Acknowledge, Default = Auto Acknowledge {@link Session}
-     */
-    public ReceiverProcess(String destName, int ackMode) {
-        this(destName, ackMode, false);
+        this(name, Session.AUTO_ACKNOWLEDGE);
     }
 
 
     /**
      *
-     * @param destName      :       Ems destination Name. Receive Message From.
-     * @param ackMode       :       Ems Acknowledge, Default = Auto Acknowledge {@link Session}
-     * @param isTopic       :       Ems Destination Type. Default = false
+     * @param name      :       Topic Name.
+     * @param ackMode   :       Ems Acknowledge Mode, Default = Auto Acknowledge.
      */
-    public ReceiverProcess(String destName, int ackMode, boolean isTopic) {
+    public NewQueueReceiverProcess(String name, int ackMode){
+        this(name, ackMode, true);
+    }
 
-        this.destName = destName;
+
+    /**
+     *
+     * @param name      :       Topic Name.
+     * @param ackMode   :       Ems Acknowledge Mode, Default = Auto Acknowledge.
+     * @param isTopic   :       Destination Type Topic or Queue, Default = Topic.
+     */
+    public NewQueueReceiverProcess(String name, int ackMode, boolean isTopic) {
+
+        this.topicName = name;
 
         this.ackMode = ackMode;
 
@@ -113,15 +109,14 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     /**
      * Use Instantiate Essential Class.
-     * 0. Thread Name
+     * Included 1. setUPThreadName 2. createEmsConnection.
      * 1. MemoryStorage
      * 2. EmsUtil
      * 3. Util
      * 4. (Optional) ProcessName.
-     * 5. Create Ems Connection from Receiver Interface.
      */
     @Override
-    public void setUpInstance() throws TibjmsAdminException {
+    public void setUpInstance() throws TibjmsAdminException{
 
         // Set-Up Thread Name.
         this.ThreadName = this.setUpThreadName(NewQueueReceiverProcess.class.getSimpleName());
@@ -132,15 +127,14 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
         if(ChangedName.equals(this.ThreadName)){
             logger.info("Thread Name Has been changed.. Original : {}.  New : {}..",
-                    orginName, ChangedName);
+                        orginName, ChangedName);
         } else {
             // TODO THINK BETTER ==> What if Error while Change Name?
         }
 
-        // Set-Up MemoryStorage.
-        this.memoryStorage = MemoryStorage.getInstance();
 
-        this.MYNAME = this.memoryStorage.getPROCESS_NAME();
+        // MemoryStorage.
+        this.memoryStorage = MemoryStorage.getInstance();
 
         // EMS Util
         if(this.memoryStorage.getEmsUtil() == null) {
@@ -149,9 +143,9 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         }
         this.emsUtil = this.memoryStorage.getEmsUtil();
 
-        // Tasker Util.
-        if(this.memoryStorage.getTaskerUtil() == null) this.taskerUtil = new TaskerUtil();
-        this.taskerUtil = this.memoryStorage.getTaskerUtil();
+        // Manager Util.
+        if(this.memoryStorage.getManagerUtil() == null) this.managerUtil = new ManagerUtil();
+        this.managerUtil = this.memoryStorage.getManagerUtil();
 
         // Create EMS Connection.
         try {
@@ -202,7 +196,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         this.connection = this.emsUtil.getEmsConnection();
         this.session = this.connection.createSession(ackMode);
 
-        destination = (this.isTopic) ? session.createTopic(this.destName) : session.createQueue(this.destName);
+        destination = (this.isTopic) ? session.createTopic(this.topicName) : session.createQueue(this.topicName);
         msgConsumer = session.createConsumer(destination);
 
     }
@@ -212,15 +206,22 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
      ***********************************  Process Logic **************************************
      *****************************************************************************************/
 
+    /**
+     * Button By Runnable.  Automation Play Button.
+     */
     @Override
     public void run() {
 
         logger.info(" Run Method, Run Execute Method");
 
         this.execute();
+
     }
 
+
     /**
+     * arbitrary play button.
+     *
      * run Logic
      * if runnable case, run() {
      * execute() {
@@ -235,19 +236,18 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
         while(active){
 
-            TextMessage message = null;
+            Message message = null;
             try {
+                message = msgConsumer.receive();
 
-                message = (TextMessage) msgConsumer.receive();
-
-                // Do Something
                 this.handleMessage(message);
 
+
             } catch (JMSException e) {
-                logger.error("[{}] Error : {}/{}.","ParsingMsg", e.getMessage(), e.toString());
+                logger.info("[{}] Error : {}/{}.","ReceiveProcess", e.getMessage(), e.toString());
+                logger.error("[{}] Error : {}/{}.","ReceiveProcess", e.getMessage(), e.toString());
                 e.printStackTrace();
             }
-
 
 
             // Ack
@@ -256,9 +256,10 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
                     ackMode == Tibjms.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE)
             {
                 try {
+                    assert message != null;
                     message.acknowledge();
                 } catch (JMSException e) {
-                    logger.error("[{}] Error : {}/{}.","AckMsg", e.getMessage(), e.toString());
+                    logger.error("[{}] Error : {}/{}.","ReceiveProcess", e.getMessage(), e.toString());
                     e.printStackTrace();
                 }
             }
@@ -269,6 +270,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     }
 
+
     /**
      * Message Handle Method.
      * When Receiver Receive Message, run handleMessage method.
@@ -278,57 +280,44 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     @Override
     public void handleMessage(Message message) {
 
-        TextMessage textMessage = (TextMessage) message;
 
-        // Parsing Message
+        // Get Queue Name.
+        String newQueue = null;
         try{
-            String header = textMessage.getStringProperty(MSG_TYPE_PROP);
-            logger.info("Parsing Message Header : {} and  Body : {}.", header, textMessage.getText());
+            newQueue = ((TibjmsMapMessage) message).getStringProperty(PROPERTY_NAME);
 
-            // Assign Task Message.
-            // Assign New Work Queue Process.
-            // TODO TEST REQUIRED.
-            if(header.equals(MNG_ASSIGN_TSK_VAL)) {
-
-                String newAssignWrkQ = textMessage.getText();
-
-                // Assignable Check
-                // if> queue is already in queue manage map. => error.
-                if(!memoryStorage.getQueueMap().containsKey(newAssignWrkQ)){
-
-                    try{
-                        //TODO THINK BETTER => Assign Thread Number.
-                        int numOfThread = memoryStorage.getQueueMap().size() + 1;
-                        this.invokeReceiverSubProcess(newAssignWrkQ, numOfThread);
-                        logger.info("Tasker : {} is Start to Receive Work Queue : {}.",this.MYNAME, newAssignWrkQ );
-
-                    }catch (Exception e){
-                        logger.error("[{}] Error : {}/{}.","InvokeError", e.getMessage(), e.toString());
-                        e.printStackTrace();
-                    }
-                }else {
-
-                    // TODO Re-Assigned Queue. Error Logic.
-                    logger.error("New Work Queue is Re Assigned. Check this Out... queue : {}., print All Queue Map : {}",
-                            newAssignWrkQ, memoryStorage.getQueueMap().toString());
-                }
-
-            }
-
-            // Re-balance Message
-            // TODO Re-Balance Process
-            if(header.equals(MNG_RBL_CNT_VAL)) {
-
-                int RebalanceCount = Integer.parseInt(textMessage.getText());
-                logger.info("Receive Re-balance Order.  Target Threshold : {}. ", RebalanceCount);
-
-                // do re-balance process.
-                this.rebalanceExecuteProcess(RebalanceCount);
-            }
-
-        }catch (JMSException e){
-            logger.error("[{}] Error : {}/{}.","HandleError", e.getMessage(), e.toString());
+        }catch (Exception e){
+            logger.error("[{}] Error : {}/{}.","AssignWorkQueue", e.getMessage(), e.toString());
             e.printStackTrace();
+        }
+//                System.out.println(message.getStringProperty(PROPERTY_NAME));
+
+
+        // Check WRK Queue Prefix.
+        if(newQueue != null && newQueue.startsWith(AppPro.EMS_WRK_PREFIX.getValue())){
+
+            logger.info("New Queue : {}. No one Take it.", newQueue);
+            String assignableTasker = managerUtil.findIdleTasker();
+            managerUtil.assignWrkQtoTSK(newQueue, assignableTasker);
+
+            logger.info(" New Work Queue : {}  has been assign to Tasker : {}", newQueue, assignableTasker);
+            // TODO THINK BETTER ==> Check Receiver logic Wrong....
+
+//            try {
+//                int receiverCount = emsUtil.getTibjmsAdmin().getQueue(newQueue).getReceiverCount();
+//                // Check Receiver Count is 0 ==> De-Active Queue
+//                if(receiverCount == 0){
+//
+//                    String assignableTasker = managerUtil.findIdleTasker();
+//                    managerUtil.assignWrkQtoTSK(newQueue, assignableTasker);
+//
+//                    logger.info(" New Work Queue : {}  has been assign to Tasker : {}", newQueue, assignableTasker);
+//                }
+//            } catch (TibjmsAdminException e) {
+//                logger.error("[{}] Error : {}/{}.","getReceiverCount", e.getMessage(), e.toString());
+//                e.printStackTrace();
+//            }
+
         }
 
     }
@@ -347,6 +336,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         active = false;
 
     }
+
 
     @Override
     public void closeAllResources() {
@@ -373,56 +363,17 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
 
     /*****************************************************************************************
-     ***********************************  Case Logic *****************************************
-     *****************************************************************************************/
-
-    /**
-     * Invoke New Thread.
-     * @param assignedWorkQueue
-     * @throws JMSException
-     */
-    private void invokeReceiverSubProcess(String assignedWorkQueue, int num) throws JMSException {
-
-        String name = "WorkReceiverThread-" + num;
-        // Invoke WorkQueueReceiverSubProcess
-        WorkQueueReceiverSubProcess subProcess = new WorkQueueReceiverSubProcess(name, assignedWorkQueue);
-        subProcess.setActive();
-
-        // Invoke New Thread.
-        Thread thread = new Thread(subProcess);
-        thread.start();
-        // TODO THINK BETTER ==> Need to Manage theses sub-thread?.
-
-        logger.info("New Sub Receiver is Invoked.. Thread Name : {}. Working Queue : {}. ", name, assignedWorkQueue);
-    }
-
-
-    /**
-     *
-     * @param cnt
-     */
-    private void rebalanceExecuteProcess(int cnt){
-
-        int i = 0;
-        for(Map.Entry<String, QueueVO> voEntry : memoryStorage.getQueueMap().entrySet()){
-            if(i == cnt) break;
-            voEntry.getValue().getSubprocess().setRebalanceOrder();
-            i++;
-            memoryStorage.getQueueMap().remove(voEntry.getKey());
-
-            logger.info(" Return Work Queue Because of Re-Balance Order : {} th Queue, Target : {}. ", i, cnt);
-        }
-
-    }
-
-
-
-    /*****************************************************************************************
      *************************************  Main *********************************************
      ****************************************************************************************/
 
-    public static void main(String[] args) throws JMSException {
-        new ReceiverProcess("h", Session.AUTO_ACKNOWLEDGE, false).run();
+    public static void main(String[] args) throws JMSException, ClassNotFoundException, TibjmsAdminException {
+        String str = "NewQueueReceiverProcess";
+        NewQueueReceiverProcess newQueueReceiverProcess = new NewQueueReceiverProcess("$sys.monitor.queue.create");
+        newQueueReceiverProcess.setUpInstance();
+        newQueueReceiverProcess.setActive();
+        newQueueReceiverProcess.run();
 
     }
+
+
 }

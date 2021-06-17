@@ -9,6 +9,6 @@ public class SingleTone {
     }
 
     public static SingleTone getInstance() {
-        return SingleTone.SingletonHelper.INSTANCE;
+        return SingletonHelper.INSTANCE;
     }
 }

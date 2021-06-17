@@ -5,12 +5,25 @@ import lombok.Getter;
 @Getter
 public enum AppPro {
 
+    PROCESS_TSK("TSK"),
+    PACKAGE_TSK("eventTasker"),
+
+    PROCESS_MNG("MNG"),
+    PACKAGE_MNG("eventManager"),
+
+    PROCESS_HND("HND"),
+    PACKAGE_HND("eventHandler"),
+
+    PACKAGE_COMMON("com.dk.platform."),
+
     EMS_URL("tcp://localhost:7222"),
     EMS_USR("admin"),
     EMS_PWD(""),
     EMS_WRK_PREFIX("F1.EEP.WRK."),   //   WRK => WORK, Contain Tasks.
     EMS_TSK_PREFIX("F1.EEP.MGR.TSK."),
     EMS_MNG_QUEUE_NAME("F1.EEP.MGR.MNG"),   // MANAGER PROCESS will Receive Only One Queue.
+
+    NEW_QUEUE_CREATE_VAL("target_name"),    // Map Message Header get new created Target name.
 
     /**
      * Message Properties.
@@ -35,7 +48,7 @@ public enum AppPro {
     /**
      * TSK Subprocess Receive Timeout second
      */
-    TSK_REC_TIM_OUT("10"),
+    TSK_REC_TIM_OUT("100"),
 
     /**
      * TSK PERIODICALLY PROPERTY
@@ -48,3 +61,35 @@ public enum AppPro {
         this.value = value;
     }
 }
+
+
+/**
+ * Received message: MapMessage=
+ * {
+ *  Header=
+ *      { JMSMessageID={null}
+ *        JMSDestination={Topic[$sys.monitor.queue.create]}
+ *        JMSReplyTo={null}
+ *        JMSDeliveryMode={22}
+ *        JMSRedelivered={false}
+ *        JMSCorrelationID={null}
+ *        JMSType={null}
+ *        JMSTimestamp={Wed Jun 02 16:18:55 KST 2021}
+ *        JMSDeliveryTime={0}
+ *        JMSExpiration={0}
+ *        JMSPriority={4}
+ *        }
+ *  Properties=
+ *      { conn_type={String:generic}
+ *        server={String:EMS-SERVER}
+ *        JMSXDeliveryCount={Integer:1}
+ *        target_name={String:h4}
+ *        target_object={String:queue}
+ *        event_reason={String:producer}
+ *        event_class={String:queue.create}
+ *        conn_hostname={String:DESKTOP-SS74P4U}
+ *        conn_connid={Long:27}
+ *        conn_username={String:anonymous}
+ *        }
+ *  Fields={ } }
+ */

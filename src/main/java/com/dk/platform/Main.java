@@ -14,7 +14,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 
-//		new Main();
+		new Main();
 
 		Logger logger = LoggerFactory.getLogger(Main.class);
 		logger.info("[{}] Hello Worlds", "hi");

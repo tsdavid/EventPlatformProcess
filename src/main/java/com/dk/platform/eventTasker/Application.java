@@ -1,11 +1,13 @@
 package com.dk.platform.eventTasker;
 
-import com.dk.platform.ems.util.EmsUtil;
-import com.dk.platform.eventTasker.process.Initialize;
+import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
+import com.dk.platform.eventTasker.process.InitializeProcess;
 import com.dk.platform.eventTasker.process.PeriodicallyReportProcess;
 import com.dk.platform.eventTasker.process.ReceiverProcess;
 import com.dk.platform.eventTasker.util.MemoryStorage;
-import com.dk.platform.eventTasker.util.TaskerUtil;
+import com.tibco.tibjms.admin.TibjmsAdminException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jms.JMSException;
 import javax.jms.Session;
@@ -17,6 +19,8 @@ import javax.jms.Session;
  */
 public class Application implements com.dk.platform.Application {
 
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
+
     static {
         try {
             System.out.println("Application Static Block");
@@ -25,11 +29,11 @@ public class Application implements com.dk.platform.Application {
         }
     }
 
-    private Initialize initialize;
+    private InitializeProcess initialize;
 
     @Override
     public void initialize() {
-        this.initialize = new Initialize();
+        this.initialize = new InitializeProcess();
 
     }
 
@@ -37,21 +41,22 @@ public class Application implements com.dk.platform.Application {
 
         this.initialize();
         if(this.initialize == null){
-            this.initialize = new Initialize();
+            this.initialize = new InitializeProcess();
         }
 
         String MyName = MemoryStorage.getInstance().getPROCESS_NAME();
         System.out.println(MyName);
 
         // Run all Process.
+        ReceiverProcess receiverProcess = new ReceiverProcess(MyName, Session.AUTO_ACKNOWLEDGE, false);
         try {
-            ReceiverProcess receiverProcess = new ReceiverProcess(MyName, Session.AUTO_ACKNOWLEDGE, false);
-            receiverProcess.setActive();
-            Thread thread = new Thread(receiverProcess);
-            thread.start();
-        } catch (JMSException e) {
+            receiverProcess.setUpInstance();
+        } catch (TibjmsAdminException e) {
             e.printStackTrace();
         }
+        receiverProcess.setActive();
+        Thread thread = new Thread(receiverProcess);
+        thread.start();
 
         try {
             PeriodicallyReportProcess periodicallyReportProcess = new PeriodicallyReportProcess();
@@ -67,5 +72,6 @@ public class Application implements com.dk.platform.Application {
     public static void main(String[] args) {
         new Application();
 
+        logger.info("hgello");
     }
 }

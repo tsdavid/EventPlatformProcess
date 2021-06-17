@@ -35,7 +35,9 @@ public class PeriodicallyReportProcess implements Runnable, Process {
      ****************************************************************************************/
 
     private MemoryStorage memoryStorage;
+
     private EmsUtil emsUtil;
+
     private TaskerUtil taskerUtil;
 
 
@@ -48,8 +50,6 @@ public class PeriodicallyReportProcess implements Runnable, Process {
      *
      */
     public PeriodicallyReportProcess(){
-
-        this.setUpInstance();
 
     }
 
@@ -71,9 +71,27 @@ public class PeriodicallyReportProcess implements Runnable, Process {
      ***********************************  Process Logic **************************************
      *****************************************************************************************/
 
-
     @Override
     public void run() {
+
+        logger.info(" Run Method, Run Execute Method");
+
+        this.execute();
+
+
+    }
+
+
+    /**
+     * run Logic
+     * if runnable case, run() {
+     * execute() {
+     * Logic.
+     * }
+     * }
+     */
+    @Override
+    public void execute() {
 
         logger.info("[{}] Process is Now Run ", "ProcessLogic");
         // TODO THINK BETTER ==> Don't Need to Set Thread Name??.
@@ -86,11 +104,13 @@ public class PeriodicallyReportProcess implements Runnable, Process {
             try {
                 Thread.sleep(delay * 1000);
             } catch (InterruptedException e) {
+                logger.error("[{}] Error : {}/{}.","HealthCheck", e.getMessage(), e.toString());
                 e.printStackTrace();
             }
 
             // Send Health Check Message.
             taskerUtil.sendMessageToManager(true, false, false, "");
+            logger.debug("Tasker : {}.  Send Health Check Message ", memoryStorage.getPROCESS_NAME());
 
         }
 
