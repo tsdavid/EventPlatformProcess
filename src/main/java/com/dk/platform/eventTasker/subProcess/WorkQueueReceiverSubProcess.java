@@ -53,14 +53,14 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
 
     private EmsUtil emsUtil;
 
-    private int ReceiveTimeOut = 0;
+    private int ReceiveTimeOut;
 
     private boolean rebalanceOrder = false;
 
     private String ThreadName;
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
@@ -93,10 +93,10 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
 
     /**
      * For Test
-     * @param destName
-     * @param ackMode
-     * @param emsUtil
-     * @throws JMSException
+     * @param destName          :       EMS Destination Name
+     * @param ackMode           :       EMS Acknowledge Mode.
+     * @param emsUtil           :       EMS Util...
+     * @throws JMSException     :       {@link JMSException}
      */
     public WorkQueueReceiverSubProcess(String ThreadName, String destName, int ackMode, EmsUtil emsUtil)  {
 
@@ -138,9 +138,10 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
         if(ChangedName.equals(this.ThreadName)){
             logger.info("Thread Name Has been changed.. Original : {}.  New : {}..",
                     orginName, ChangedName);
-        } else {
-            // TODO THINK BETTER ==> What if Error while Change Name?
         }
+        // TODO THINK BETTER ==> What if Error while Change Name?
+//        else {
+//        }
 
         // Set-Up MemoryStorage.
         this.memoryStorage = MemoryStorage.getInstance();
@@ -271,8 +272,12 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
                     ackMode == Tibjms.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE)
             {
                 try {
+
+                    // TODO THINKK BETTER ==> Prevent Quick Net Work Disable Case.
                     message.acknowledge();
+
                 } catch (JMSException e) {
+                    logger.error("[{}] Error : {}/{}.","AckMsg", e.getMessage(), e.toString());
                     e.printStackTrace();
                 }
             }
@@ -350,7 +355,7 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
     }
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Case Logic *****************************************
      *****************************************************************************************/
 
@@ -372,6 +377,7 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
         // check rebalance order is true? and active is false.
         if(rebalanceOrder && !active){
             // send to Manager to return work queue.
+            // TODO Deprecated Method.
             taskerUtil.sendRebalanceReturnMessage(this.destName);
 
             // Close EMS Resource

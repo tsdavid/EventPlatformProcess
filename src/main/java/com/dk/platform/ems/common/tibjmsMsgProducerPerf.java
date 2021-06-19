@@ -229,9 +229,9 @@ public class tibjmsMsgProducerPerf extends tibjmsPerfCommon implements Runnable 
         }
 
         try {
-            MessageProducer msgProducer = null;
-            Destination destination = null;
-            Session session = null;
+            MessageProducer msgProducer;
+            Destination destination;
+            Session session;
             XAResource xaResource = null;
             tibjmsPerfTxnHelper txnHelper = getPerfTxnHelper(xa);
 

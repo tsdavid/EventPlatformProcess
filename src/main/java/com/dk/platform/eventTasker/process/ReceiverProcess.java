@@ -72,7 +72,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     private final String MNG_ASSIGN_TSK_VAL = AppPro.MNG_ASG_WRK_VAL.getValue();
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
@@ -133,9 +133,10 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         if(ChangedName.equals(this.ThreadName)){
             logger.info("Thread Name Has been changed.. Original : {}.  New : {}..",
                     orginName, ChangedName);
-        } else {
-            // TODO THINK BETTER ==> What if Error while Change Name?
         }
+        // TODO THINK BETTER ==> What if Error while Change Name?
+//        else {
+//        }
 
         // Set-Up MemoryStorage.
         this.memoryStorage = MemoryStorage.getInstance();
@@ -256,6 +257,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
                     ackMode == Tibjms.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE)
             {
                 try {
+                    // TODO THINKK BETTER ==> Prevent Quick Net Work Disable Case.
                     message.acknowledge();
                 } catch (JMSException e) {
                     logger.error("[{}] Error : {}/{}.","AckMsg", e.getMessage(), e.toString());
@@ -372,14 +374,14 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     }
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Case Logic *****************************************
      *****************************************************************************************/
 
     /**
      * Invoke New Thread.
-     * @param assignedWorkQueue
-     * @throws JMSException
+     * @param assignedWorkQueue         :       Ready to Assign Queue Name.
+     * @throws JMSException             :       {@link JMSException}
      */
     private void invokeReceiverSubProcess(String assignedWorkQueue, int num) throws JMSException {
 
@@ -399,7 +401,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     /**
      *
-     * @param cnt
+     * @param cnt           :       Threshold
      */
     private void rebalanceExecuteProcess(int cnt){
 

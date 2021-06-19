@@ -34,12 +34,6 @@ public class InitializeProcess implements Process {
     private static final Logger logger = LoggerFactory.getLogger(InitializeProcess.class);
 
 
-    /*****************************************************************************************
-     ***********************************  Variables ******************************************
-     ****************************************************************************************/
-
-    private MemoryStorage memoryStorage;
-
     private EmsUtil emsUtil;
 
     private ManagerUtil managerUtil;
@@ -71,11 +65,14 @@ public class InitializeProcess implements Process {
     @Override
     public void setUpInstance() {
 
-        this.memoryStorage = MemoryStorage.getInstance();
+        /*
+         ***********************************  Variables ******************************************
+         ****************************************************************************************/
+        MemoryStorage memoryStorage = MemoryStorage.getInstance();
 
         try {
             this.emsUtil = new EmsUtil(this.emsServerUrl, this.emsUserName, this.emsPassword);
-            this.memoryStorage.setEmsUtil(this.emsUtil);
+            memoryStorage.setEmsUtil(this.emsUtil);
 
         } catch (TibjmsAdminException e) {
 
@@ -85,7 +82,7 @@ public class InitializeProcess implements Process {
         }
 
         this.managerUtil = new ManagerUtil();
-        this.memoryStorage.setManagerUtil(this.managerUtil);
+        memoryStorage.setManagerUtil(this.managerUtil);
 
 
     }
@@ -100,7 +97,7 @@ public class InitializeProcess implements Process {
     }
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Scan Logic *****************************************
      *****************************************************************************************/
 
@@ -114,6 +111,9 @@ public class InitializeProcess implements Process {
 
         // if tasker is in Map.
         String assignableTasker = managerUtil.findIdleTasker();
+        //TODO THINK BETTER ==> Recevier 가 기동 전이라 Tasker가 항상 없을거 같다.
+        //  처음에 뜰때, Tasker 정보도 얻고 바로 queue를 할당 해줘야 할거 같음. Tasker Health Check Message 기다리기엔..
+        // ==> execute method를 Receiver 다 뜬 후에 설정하는 것으로 해결
         for(String Wq : deactiveWrkQs){
             if(assignableTasker != null) managerUtil.assignWrkQtoTSK(Wq, assignableTasker); // Assign De-Active WRK Q to Tasker.
             else{   // IF No Tasker in Map. Save in Tmp Set.

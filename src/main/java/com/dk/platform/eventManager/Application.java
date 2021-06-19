@@ -15,20 +15,20 @@ public class Application implements com.dk.platform.Application{
         }
     }
 
-    private InitializeProcess initialize;
-
+    private InitializeProcess initializeProcess;
     @Override
     public void initialize() {
-        this.initialize = InitializeProcess.builder()
-                            .emsServerUrl(AppPro.EMS_URL.getValue())
-                            .emsUserName(AppPro.EMS_USR.getValue())
-                            .emsPassword(AppPro.EMS_PWD.getValue())
-                            .build();
+        initializeProcess = InitializeProcess.builder()
+                .emsServerUrl(AppPro.EMS_URL.getValue())
+                .emsUserName(AppPro.EMS_USR.getValue())
+                .emsPassword(AppPro.EMS_PWD.getValue())
+                .build();
     }
 
     public Application() {
 
         this.initialize();
+        this.initializeProcess.setUpInstance();
 
         try{
             NewQueueReceiverProcess systemTopicReceiver = new NewQueueReceiverProcess("$sys.monitor.queue.create", 1,true);
@@ -49,6 +49,10 @@ public class Application implements com.dk.platform.Application{
         }catch (Exception e){
             e.printStackTrace();
         }
+
+
+        // Set up Instance 한 후에 execute 를 통해 Scan EMS 를 기동
+        this.initializeProcess.execute();
 
     }
 

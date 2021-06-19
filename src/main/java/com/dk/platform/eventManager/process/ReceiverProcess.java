@@ -70,7 +70,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     private final String TSK_RET_WRK = AppPro.TSK_RBL_RTN_MNG_VAL.getValue();
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
@@ -132,9 +132,10 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         if(ChangedName.equals(this.ThreadName)){
             logger.info("Thread Name Has been changed.. Original : {}.  New : {}..",
                     orginName, ChangedName);
-        } else {
-            // TODO THINK BETTER ==> What if Error while Change Name?
         }
+        // TODO THINK BETTER ==> What if Error while Change Name?
+//        else {
+//        }
 
         // Set-Up MemoryStorage.
         this.memoryStorage = MemoryStorage.getInstance();
@@ -257,8 +258,16 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
                     ackMode == Tibjms.EXPLICIT_CLIENT_DUPS_OK_ACKNOWLEDGE)
             {
                 try {
+
+                    // TODO THINKK BETTER ==> Prevent Quick Net Work Disable Case.
                     message.acknowledge();
+
                 } catch (JMSException e) {
+                    logger.error("[{}] Error : {}/{}.","AckMsg", e.getMessage(), e.toString());
+                    e.printStackTrace();
+
+
+                } catch (Exception e) {
                     logger.error("[{}] Error : {}/{}.","AckMsg", e.getMessage(), e.toString());
                     e.printStackTrace();
                 }
@@ -288,7 +297,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
             // New Tasker Arrive Case.
             if(header.equals(TSK_INIT)) this.taskerInitProcess(textMessage.getText());
 
-                // Receive Tasker's Health Check Message Case.
+            // Receive Tasker's Health Check Message Case.
             else if(header.equals(TSK_WRK_STATUS)){
                 String messageFrom = textMessage.getStringProperty(AppPro.TSK_HLTH_FROM_PROP.getValue());
                 this.taskerReportProcess(messageFrom, textMessage.getText());
@@ -349,7 +358,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     }
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Case Logic *****************************************
      *****************************************************************************************/
 
@@ -358,7 +367,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     /**
      * 1. Set-Up TaskerVO in Map.
      * 2. Check Re-Balance.
-     * @param taskerName
+     * @param taskerName            :           New Running Tasker Name
      */
     private void taskerInitProcess(String taskerName){
 
@@ -373,19 +382,20 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         logger.info(" New Tasker Set-Up name : {}.  size of tasker map : {}", taskerName, memoryStorage.getTasker_Mng_Map().size());
         logger.info(" New Tasker Set-Up name : {}. tasker map : {}", taskerName, memoryStorage.getTasker_Mng_Map().toString());
 
+        // check Re-Balance
+        this.checkRebalancable(taskerName);
+
         // Check Whether WRK Q is int TMP WRK Q.
         if(memoryStorage.getTmp_WRK_Queue().size() > 0){
             this.managerUtil.executeTmpQueue(taskerName);
         }
 
-        // check Re-Balance
-        this.checkRebalancable(taskerName);
     }
 
 
     /**
      *
-     * @param newTaskerName
+     * @param taskerName            :           New Running Tasker Name
      */
     private void checkRebalancable(String newTaskerName){
 
@@ -408,8 +418,8 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     /**
      *
-     * @param fromDestination
-     * @param workQueues
+     * @param fromDestination       :       Tasker Name who send this Report.
+     * @param workQueues            :       Queue List owned by reporter(tasker).
      */
     private void taskerReportProcess(String fromDestination, String workQueues){
 
@@ -422,8 +432,8 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     /**
      *
-     * @param fromDestination
-     * @param completeQueue
+     * @param fromDestination       :       Tasker Name who send this Report.
+     * @param completeQueue         :       Completed Queue Name.
      */
     // TODO COMPLETE WORK QUEUE LOGIC
     private void taskerCompletedWork(String fromDestination, String completeQueue){
@@ -433,7 +443,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     /**
      *
-     * @param returedWorkQueue
+     * @param returedWorkQueue      :       Returned Queue Name by Re-Balance Order.
      */
     private void taskerReturnedWrok(String returedWorkQueue){
 

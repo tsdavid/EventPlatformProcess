@@ -41,7 +41,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
     private TaskerUtil taskerUtil;
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
@@ -96,13 +96,15 @@ public class PeriodicallyReportProcess implements Runnable, Process {
         logger.info("[{}] Process is Now Run ", "ProcessLogic");
         // TODO THINK BETTER ==> Don't Need to Set Thread Name??.
 
-        // TODO THINK BETTER ==> while???.
+        // TODO THINK BETTER ==> while???, Thread Sleep????? ==> Busy Wait Case..
         // Only way to use while loop?
         while (true){
 
             int delay = Integer.parseInt(AppPro.TSK_POLLING_INTERVAL.getValue());
             try {
-                Thread.sleep(delay * 1000);
+                // TODO THINK BETTER ==> Busy-Waiting...
+
+                Thread.sleep(delay * 1000L);
             } catch (InterruptedException e) {
                 logger.error("[{}] Error : {}/{}.","HealthCheck", e.getMessage(), e.toString());
                 e.printStackTrace();

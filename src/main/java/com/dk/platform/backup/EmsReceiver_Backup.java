@@ -11,10 +11,8 @@ import javax.jms.*;
 
 public class EmsReceiver_Backup implements Runnable, Consumer {
 
-    private Connection connection;
     private Session session;
     private MessageConsumer msgConsumer;
-    private Destination destination;
     private int ackMode;
     private boolean active = false;
 
@@ -22,12 +20,12 @@ public class EmsReceiver_Backup implements Runnable, Consumer {
 
         this.ackMode = ackMode;
         try {
-            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
-            this.session = this.connection.createSession(ackMode);
+            Connection connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
+            this.session = connection.createSession(ackMode);
         } catch (TibjmsAdminException e) {
             e.printStackTrace();
         }
-        destination = (isTopic) ? session.createTopic(name) : session.createQueue(name);
+        Destination destination = (isTopic) ? session.createTopic(name) : session.createQueue(name);
         msgConsumer = session.createConsumer(destination);
 
     }

@@ -25,29 +25,35 @@ import java.util.Map;
  */
 public class EmsUtil extends tibjmsPerfCommon {
 
-    /*****************************************************************************************
+    /*
      **************************************  Logger ******************************************
      ****************************************************************************************/
+
     private static final Logger logger = LoggerFactory.getLogger(EmsUtil.class);
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Variables ******************************************
      ****************************************************************************************/
+
     private ConnectionFactory factory;
+
     private Connection connection;
+
     private TibjmsAdmin tibjmsAdmin;
-    private TibCompletionListener completionListener;
+
+    private final TibCompletionListener completionListener;
+
     private Session session;
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
     /**
      * For Test
-     * @throws TibjmsAdminException
+     * @throws TibjmsAdminException             :           {@link TibjmsAdminException}
      */
     public EmsUtil() throws TibjmsAdminException {
 
@@ -56,6 +62,7 @@ public class EmsUtil extends tibjmsPerfCommon {
         try {
             this.setEmsConnection();
         } catch (JMSException e) {
+            logger.error("[{}] Error : {}/{}.","EmsConn", e.getMessage(), e.toString());
             e.printStackTrace();
         }
 
@@ -63,18 +70,20 @@ public class EmsUtil extends tibjmsPerfCommon {
             this.session = this.connection.createSession(Session.AUTO_ACKNOWLEDGE);
 
         } catch (JMSException e) {
+            logger.error("[{}] Error : {}/{}.","CreateSession", e.getMessage(), e.toString());
             e.printStackTrace();
         }
 
         this.completionListener = new TibCompletionListener();
     }
 
+
     /**
      *
-     * @param Url
-     * @param user
-     * @param pwd
-     * @throws TibjmsAdminException
+     * @param Url           :           EMS Server Url
+     * @param user          :           EMS Server UserName
+     * @param pwd           :           EMS Server password.
+     * @throws TibjmsAdminException             :           {@link TibjmsAdminException}
      */
     public EmsUtil(String Url, String user, String pwd) throws TibjmsAdminException {
 
@@ -129,9 +138,9 @@ public class EmsUtil extends tibjmsPerfCommon {
 
     /**
      *
-     * @param url
-     * @param user
-     * @param pwd
+     * @param url           :           EMS Server Url
+     * @param user          :           EMS Server UserName
+     * @param pwd           :           EMS Server password.
      */
     private void setTibjmsAdminConnection(String url, String user, String pwd){
 
@@ -150,7 +159,7 @@ public class EmsUtil extends tibjmsPerfCommon {
 
     /**
      * For Test
-     * @throws JMSException
+     * @throws JMSException         :       {@link JMSException}
      */
     private void setEmsConnection() throws JMSException {
 
@@ -168,10 +177,10 @@ public class EmsUtil extends tibjmsPerfCommon {
 
     /**
      *
-     * @param url
-     * @param user
-     * @param pwd
-     * @throws JMSException
+     * @param url           :           EMS Server Url
+     * @param user          :           EMS Server UserName
+     * @param pwd           :           EMS Server password.
+     * @throws JMSException         :       {@link JMSException}
      */
     private void setEmsConnection(String url, String user, String pwd) throws JMSException {
 
@@ -187,14 +196,14 @@ public class EmsUtil extends tibjmsPerfCommon {
     }
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Getter *********************************************
      ****************************************************************************************/
 
 
     /**
      *
-     * @return
+     * @return              :           EMS Connection, Actually JMS Connection
      */
     public Connection getEmsConnection() {
 
@@ -213,7 +222,7 @@ public class EmsUtil extends tibjmsPerfCommon {
 
     /**
      *
-     * @return
+     * @return              :           {@link TibjmsAdmin}
      */
     public TibjmsAdmin getTibjmsAdmin() {
 
@@ -231,19 +240,20 @@ public class EmsUtil extends tibjmsPerfCommon {
     }
 
 
-    /*****************************************************************************************
+    /*
      ********************************  Search Logic ******************************************
      ****************************************************************************************/
 
 
     /**
      *
-     * @param prefix
+     * @param prefix            :       String prefix when use in searching queue.
      * @param activeOfnot       :       if find Active => 1, De-Active = 0, No-Use = -1;
-     * @return
+     * @return                  :       Array of filtered Queue Name.
      */
     public String[] getAct_or_DeAct_QueueNames(String prefix, int activeOfnot) {
         try {
+
             return this.findQueueNamesWithCondition(prefix, activeOfnot, -1, true);
 
         } catch (TibjmsAdminException e) {
@@ -256,9 +266,10 @@ public class EmsUtil extends tibjmsPerfCommon {
 
     /**
      *
-     * @param prefix
-     * @param threshold
-     * @return
+     * @param prefix            :       String prefix when use in searching queue.
+     * @param threshold         :       Threshold of pending Standard.
+     *                                  if> Pending Message Count more than( > ) threshold => it would be pending case.
+     * @return                  :       Array of filtered Queue Name.
      */
     public String[] getDeActivewithPending(String prefix,int threshold){
         try {
@@ -275,12 +286,12 @@ public class EmsUtil extends tibjmsPerfCommon {
 
     /**
      *
-     * @param prefix
-     * @param ReceiverCnt           =       Filter with Receiver Count, No Use = -1. find Active = 1, De-Active = 0
-     * @param PendingCountThreshold =       Filter with Pending MsgCount, No Use = -1.
-     * @param pendingAbove          =       true : find above threshold => pending , false : below threshold => no-Pending
-     * @return
-     * @throws TibjmsAdminException
+     * @param prefix                 :       String prefix when use in searching queue.
+     * @param ReceiverCnt            :       Filter with Receiver Count, No Use = -1. find Active = 1, De-Active = 0
+     * @param PendingCountThreshold  :       Filter with Pending MsgCount, No Use = -1.
+     * @param pendingAbove           :       true : find above threshold => pending , false : below threshold => no-Pending
+     * @return                       :       Array of filtered Queue Name.
+     * @throws TibjmsAdminException  :       {@link TibjmsAdminException}
      */
     private String[] findQueueNamesWithCondition(String prefix, int ReceiverCnt, int PendingCountThreshold,
                                                  boolean pendingAbove) throws TibjmsAdminException {
@@ -324,7 +335,6 @@ public class EmsUtil extends tibjmsPerfCommon {
 
                         // Get Active && Pending
                         if(pendingAbove){
-//                        System.out.println("Get Active && Pending.");
                             for (QueueInfo queueInfo : queueInfos){
                                 if (queueInfo.getPendingMessageCount() >= PendingCountThreshold && queueInfo.getReceiverCount() > 0)
                                     arrayList.add(queueInfo.getName());
@@ -395,7 +405,7 @@ public class EmsUtil extends tibjmsPerfCommon {
 
 
 
-    /*****************************************************************************************
+    /*
      ******************************  Message Send Logic **************************************
      ****************************************************************************************/
 
@@ -405,7 +415,6 @@ public class EmsUtil extends tibjmsPerfCommon {
      * @param sendMessage           :   Message Contents.
      * @param properties            :   Properties attached Message header.
      * @throws JMSException         :   Throw JMSException...
-     * @throws JMSException
      */
     public void sendAsyncQueueMessage(String destinationName, String sendMessage, Map<String,String> properties) throws JMSException {
 
@@ -529,12 +538,14 @@ public class EmsUtil extends tibjmsPerfCommon {
 
 
 
-     /*****************************************************************************************
+     /*
      ***********************************  Destroy Queue Logic *********************************
      *****************************************************************************************/
 
-
-
+    /**
+     *
+     * @param queueName     :       Destroy Queue Naeme.
+     */
     public void destroyQueue(String queueName){
         try {
             tibjmsAdmin.destroyQueue(queueName);
@@ -544,6 +555,12 @@ public class EmsUtil extends tibjmsPerfCommon {
         }
     }
 
+
+    /**
+     *
+     * @param prefix        :       Prefix of Destroy Queue Name.
+     *                              Use it When destroy multi queue.
+     */
     public void destroyQueues(String prefix){
         try {
             tibjmsAdmin.destroyQueues(prefix.concat("*"));
@@ -555,15 +572,15 @@ public class EmsUtil extends tibjmsPerfCommon {
     }
 
 
-    /*****************************************************************************************
+    /*
      ****************************************  ETC Logic *************************************
      *****************************************************************************************/
 
 
     /**
      *
-     * @param queueName
-     * @throws TibjmsAdminException
+     * @param queueName             :           Queue Name will be Created on EMS Server.
+     * @throws TibjmsAdminException     :       {@link TibjmsAdminException}
      */
     public void createQueue(String queueName) throws TibjmsAdminException {
         QueueInfo queueInfo = new QueueInfo(queueName);
@@ -571,7 +588,7 @@ public class EmsUtil extends tibjmsPerfCommon {
     }
 
 
-    /*****************************************************************************************
+    /*
      *************************************  Deprecated ***************************************
      ****************************************************************************************/
 
@@ -584,7 +601,7 @@ public class EmsUtil extends tibjmsPerfCommon {
      *      => There is no case duplicate Manager Queue. Because Manager Queue will be only one and manager process will receive on queue. using EMS Exclusive.
      * 3. Return Current Manager Name.
      *
-     * @return
+     * @return          :       Active Manger Queue Name.
      */
     @Deprecated
     public String getActiveManager(){
@@ -597,10 +614,11 @@ public class EmsUtil extends tibjmsPerfCommon {
         }
     }
 
+
     /**
-     *
-     * @param queueName
-     * @return
+     *Deprecated Reason : Not Work Well.  Instead of this method. Use this.getTibjmsAdmin method.
+     * @param queueName         :       Queue Name want to get QueueInfo.
+     * @return                  :       Required Queue Info.
      */
     @Deprecated
     public QueueInfo getQueueInfo(String queueName){
@@ -614,7 +632,7 @@ public class EmsUtil extends tibjmsPerfCommon {
     }
 
 
-    /*****************************************************************************************
+    /*
      *************************************  Main *********************************************
      ****************************************************************************************/
 

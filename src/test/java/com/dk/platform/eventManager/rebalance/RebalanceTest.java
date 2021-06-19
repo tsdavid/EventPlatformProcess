@@ -42,11 +42,11 @@ public class RebalanceTest {
      * 4. First and Second Tasker Return WorkQueue Back to Manager
      * 5. Manager Assign Work Queue to lowest Tasker.
      */
-    public void DistributeWRK_Queue_Test(){
-
-        // 1. Generate Work Queue with lots of Message.
-        // 2. Run Tasker and Assign WRK to them.
-    }
+//    public void DistributeWRK_Queue_Test(){
+//
+//        // 1. Generate Work Queue with lots of Message.
+//        // 2. Run Tasker and Assign WRK to them.
+//    }
     @After
     public void cleanEmsServer(){
         emsUtil.destroyQueues(AppPro.EMS_WRK_PREFIX.getValue());
@@ -107,15 +107,10 @@ public class RebalanceTest {
             }
 
             // Set Up Receiver
-            try {
-                ReceiverProcess receiverProcess = new ReceiverProcess(taskerName, 1, false);
-                receiverProcess.setActive();
-                Thread thread = new Thread(receiverProcess);
-                thread.start();
-
-            } catch (JMSException e) {
-                e.printStackTrace();
-            }
+            ReceiverProcess receiverProcess = new ReceiverProcess(taskerName, 1, false);
+            receiverProcess.setActive();
+            Thread thread = new Thread(receiverProcess);
+            thread.start();
 
         }
         System.out.println(MemoryStorage.getInstance().getTasker_Mng_Map().toString());
@@ -138,34 +133,27 @@ public class RebalanceTest {
             e.printStackTrace();
         }
         // Set Up Receiver
-        try {
-            ReceiverProcess receiverProcess = new ReceiverProcess(newtaskerName, 1, false);
-            receiverProcess.setActive();
-            Thread thread = new Thread(receiverProcess);
-            thread.start();
-
-        } catch (JMSException e) {
-            e.printStackTrace();
-        }
-
+        ReceiverProcess receiverProcess = new ReceiverProcess(newtaskerName, 1, false);
+        receiverProcess.setActive();
+        Thread thread = new Thread(receiverProcess);
+        thread.start();
 
 
         // then
         int o_taserCount = managerUtil.searchO_Tasker(newtaskerName).length;
         int searchWorkQueueCount = managerUtil.searchWorkQueue().length;
-        int avgWorkQueue = managerUtil.getAvgWrkQinTSK();
+        int avgWorkQueue = managerUtil.getAvgWorkQueueOwnedByTSK(); // tobe_result
 
         System.out.println(MemoryStorage.getInstance().getTasker_Mng_Map().toString());
         System.out.println(MemoryStorage.getInstance().getTasker_Mng_Map().size());
         System.out.println("o_taserCount : " + o_taserCount + " searchWorkQueueCount : " + searchWorkQueueCount + " avgWorkQueueinTasker : "  + avgWorkQueue);
 
         int threshold_result = searchWorkQueueCount / o_taserCount; // => threshold
-        int tobe_result = avgWorkQueue; // => tobe
 
-        System.out.println("threshold : " + threshold_result  + "  toBE : " + tobe_result + " cntWrkQ / cntTskQ + 1 : " + (cntWrkQ / cntTskQ + 1));
+        System.out.println("threshold : " + threshold_result  + "  toBE : " + avgWorkQueue + " cntWrkQ / cntTskQ + 1 : " + (cntWrkQ / cntTskQ + 1));
 
         assertThat(answer).isEqualTo(threshold_result);
-        assertThat(cntWrkQ / (cntTskQ + 1)).isEqualTo(tobe_result);
+        assertThat(cntWrkQ / (cntTskQ + 1)).isEqualTo(avgWorkQueue);
 
     }
 }

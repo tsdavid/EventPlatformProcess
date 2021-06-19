@@ -41,19 +41,13 @@ public class NewQueueReceiverProcess implements Runnable, Consumer, Process, Rec
 
     private final String PROPERTY_NAME = AppPro.NEW_QUEUE_CREATE_VAL.getValue();
 
-    private Connection connection;
-
     private Session session;
 
     private MessageConsumer msgConsumer;
 
-    private Destination destination;
-
     private int ackMode;
 
     private boolean active = false;
-
-    private MemoryStorage memoryStorage;
 
     private EmsUtil emsUtil;
 
@@ -63,10 +57,8 @@ public class NewQueueReceiverProcess implements Runnable, Consumer, Process, Rec
 
     private boolean  isTopic;
 
-    private String ThreadName;
 
-
-    /*****************************************************************************************
+    /*
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
@@ -119,33 +111,34 @@ public class NewQueueReceiverProcess implements Runnable, Consumer, Process, Rec
     public void setUpInstance() throws TibjmsAdminException{
 
         // Set-Up Thread Name.
-        this.ThreadName = this.setUpThreadName(NewQueueReceiverProcess.class.getSimpleName());
+        String threadName = this.setUpThreadName(NewQueueReceiverProcess.class.getSimpleName());
         Thread thread = Thread.currentThread();
         String orginName = thread.getName();
-        thread.setName(this.ThreadName);
+        thread.setName(threadName);
         String ChangedName = thread.getName();
 
-        if(ChangedName.equals(this.ThreadName)){
+        if(ChangedName.equals(threadName)){
             logger.info("Thread Name Has been changed.. Original : {}.  New : {}..",
                         orginName, ChangedName);
-        } else {
-            // TODO THINK BETTER ==> What if Error while Change Name?
         }
+//        else {
+//            // TODO THINK BETTER ==> What if Error while Change Name?
+//        }
 
 
         // MemoryStorage.
-        this.memoryStorage = MemoryStorage.getInstance();
+        MemoryStorage memoryStorage = MemoryStorage.getInstance();
 
         // EMS Util
-        if(this.memoryStorage.getEmsUtil() == null) {
+        if(memoryStorage.getEmsUtil() == null) {
             this.emsUtil = new EmsUtil();
-            this.memoryStorage.setEmsUtil(this.emsUtil);
+            memoryStorage.setEmsUtil(this.emsUtil);
         }
-        this.emsUtil = this.memoryStorage.getEmsUtil();
+        this.emsUtil = memoryStorage.getEmsUtil();
 
         // Manager Util.
-        if(this.memoryStorage.getManagerUtil() == null) this.managerUtil = new ManagerUtil();
-        this.managerUtil = this.memoryStorage.getManagerUtil();
+        if(memoryStorage.getManagerUtil() == null) this.managerUtil = new ManagerUtil();
+        this.managerUtil = memoryStorage.getManagerUtil();
 
         // Create EMS Connection.
         try {
@@ -190,19 +183,20 @@ public class NewQueueReceiverProcess implements Runnable, Consumer, Process, Rec
     @Override
     public void createEmsConnection() throws TibjmsAdminException, JMSException {
 
+        Connection connection;
         if(this.emsUtil == null){
-            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
+            connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
         }
-        this.connection = this.emsUtil.getEmsConnection();
-        this.session = this.connection.createSession(ackMode);
+        connection = this.emsUtil.getEmsConnection();
+        this.session = connection.createSession(ackMode);
 
-        destination = (this.isTopic) ? session.createTopic(this.topicName) : session.createQueue(this.topicName);
+        Destination destination = (this.isTopic) ? session.createTopic(this.topicName) : session.createQueue(this.topicName);
         msgConsumer = session.createConsumer(destination);
 
     }
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Process Logic **************************************
      *****************************************************************************************/
 
@@ -284,13 +278,12 @@ public class NewQueueReceiverProcess implements Runnable, Consumer, Process, Rec
         // Get Queue Name.
         String newQueue = null;
         try{
-            newQueue = ((TibjmsMapMessage) message).getStringProperty(PROPERTY_NAME);
+            newQueue = message.getStringProperty(PROPERTY_NAME);
 
         }catch (Exception e){
             logger.error("[{}] Error : {}/{}.","AssignWorkQueue", e.getMessage(), e.toString());
             e.printStackTrace();
         }
-//                System.out.println(message.getStringProperty(PROPERTY_NAME));
 
 
         // Check WRK Queue Prefix.

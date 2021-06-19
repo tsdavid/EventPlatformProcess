@@ -44,7 +44,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
     private EmsUtil emsUtil = null;
 
-    /*****************************************************************************************
+    /*
      ********************************  Message Properties ************************************
      ****************************************************************************************/
 
@@ -72,7 +72,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Constructor ****************************************
      *****************************************************************************************/
 
@@ -155,7 +155,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
     }
 
 
-    /*****************************************************************************************
+    /*
      ********************************  Report Manager Logic **********************************
      *****************************************************************************************/
 
@@ -214,7 +214,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
 
 
-    /*****************************************************************************************
+    /*
      ************************************  ETC Logic *****************************************
      *****************************************************************************************/
 
@@ -223,7 +223,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
      * Move to EmsUtil
      * Verified
      * Set-Up For Tasker Name.
-     * @return
+     * @return              :           Tasker Name
      */
     public String setTaskerName() {
 
@@ -249,7 +249,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
     }
 
 
-    /*****************************************************************************************
+    /*
      *************************************  Deprecated ***************************************
      ****************************************************************************************/
 
@@ -265,8 +265,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
         String toManager = AppPro.EMS_MNG_QUEUE_NAME.getValue();
 
         // Set-up For Properties.
-        Map<String,String> properties = new HashMap<>();
-        properties = this.RebalanceReturnedQueueProperties;
+        Map<String,String> properties = this.RebalanceReturnedQueueProperties;
 
         try {
             emsUtil.sendSafeQueueMessage(toManager, workQueueName, properties);
@@ -293,9 +292,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
         }
 
         // Set-up For Properties.
-        Map<String,String> properties = new HashMap<>();
-//        properties.put(MSG_TYPE_PROP, TSK_HEALTH_CHECK_VAL);
-        properties = this.HealthCheckProperties;
+        Map<String,String> properties = this.HealthCheckProperties;
         properties.put(FROM_TASKER_PROP,memoryStorage.getPROCESS_NAME());
         try {
             emsUtil.sendAsyncQueueMessage(toManager, msg, properties);
@@ -307,7 +304,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
     /**
      * Replace with sendMessageToManager
-     * @param workQueueName
+     * @param workQueueName         :           Completed Work Queue Name.
      */
     @Deprecated
     public void sendCompleteWorkQueueMessage(String workQueueName) {
@@ -316,9 +313,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
         String toManager = AppPro.EMS_MNG_QUEUE_NAME.getValue();
 
         // Set-up For Properties.
-        Map<String,String> properties = new HashMap<>();
-//        properties.put(MSG_TYPE_PROP, TSK_COM_WRJ_PRO_VAL);
-        properties = this.CompleteQueueProperties;
+        Map<String,String> properties = this.CompleteQueueProperties;
         properties.put(FROM_TASKER_PROP,memoryStorage.getPROCESS_NAME());
         try {
             emsUtil.sendSafeQueueMessage(toManager, workQueueName, properties);

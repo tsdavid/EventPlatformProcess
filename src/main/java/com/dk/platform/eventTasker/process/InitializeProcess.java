@@ -37,15 +37,7 @@ public class InitializeProcess implements Process {
     private static final Logger logger = LoggerFactory.getLogger(InitializeProcess.class);
 
 
-    /*****************************************************************************************
-     ***********************************  Variables ******************************************
-     ****************************************************************************************/
-
-    private MemoryStorage memoryStorage;
-
     private EmsUtil emsUtil;
-
-    private TaskerUtil taskerUtil;
 
     private String MYNAME;
 
@@ -78,11 +70,14 @@ public class InitializeProcess implements Process {
     @Override
     public void setUpInstance() {
 
-        this.memoryStorage = MemoryStorage.getInstance();
+        /*
+         ***********************************  Variables ******************************************
+         ****************************************************************************************/
+        MemoryStorage memoryStorage = MemoryStorage.getInstance();
 
         try {
             this.emsUtil = new EmsUtil(this.emsServerUrl, this.emsUserName, this.emsPassword);
-            this.memoryStorage.setEmsUtil(this.emsUtil);
+            memoryStorage.setEmsUtil(this.emsUtil);
 
         } catch (TibjmsAdminException e) {
 
@@ -92,11 +87,11 @@ public class InitializeProcess implements Process {
         }
 
 
-        this.taskerUtil = new TaskerUtil();
-        this.memoryStorage.setTaskerUtil(this.taskerUtil);
+        TaskerUtil taskerUtil = new TaskerUtil();
+        memoryStorage.setTaskerUtil(taskerUtil);
 
-        this.MYNAME = this.taskerUtil.setTaskerName();
-        this.memoryStorage.setPROCESS_NAME(this.MYNAME);
+        this.MYNAME = taskerUtil.setTaskerName();
+        memoryStorage.setPROCESS_NAME(this.MYNAME);
 
     }
 
@@ -121,7 +116,7 @@ public class InitializeProcess implements Process {
     }
 
 
-    /*****************************************************************************************
+    /*
      *******************************  Send Init Message Logic ********************************
      *****************************************************************************************/
 
@@ -149,7 +144,7 @@ public class InitializeProcess implements Process {
     }
 
 
-    /*****************************************************************************************
+    /*
      *************************************  Deprecated ***************************************
      ****************************************************************************************/
 
