@@ -52,15 +52,11 @@ public class TaskerUtil_Test {
             if(i == answer) continue;
             String taskername = AppPro.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
             // Set Up Receiver
-            try {
-                ReceiverProcess receiverProcess = new ReceiverProcess(taskername, 1, false);
-                receiverProcess.setActive();
-                Thread thread = new Thread(receiverProcess);
-                thread.start();
+            ReceiverProcess receiverProcess = new ReceiverProcess(taskername, 1, false);
+            receiverProcess.setActive();
+            Thread thread = new Thread(receiverProcess);
+            thread.start();
 
-            } catch (JMSException e) {
-                e.printStackTrace();
-            }
         }
 
         String[] currentTskNames = emsUtil.getAct_or_DeAct_QueueNames(AppPro.EMS_TSK_PREFIX.getValue(), 1);

@@ -16,7 +16,7 @@ public enum AppPro {
 
     PACKAGE_COMMON("com.dk.platform."),
 
-    EMS_URL("tcp://localhost:7222"),
+    EMS_URL("tcp://140.238.31.93:7222"),
     EMS_USR("admin"),
     EMS_PWD(""),
     EMS_WRK_PREFIX("F1.EEP.WRK."),   //   WRK => WORK, Contain Tasks.

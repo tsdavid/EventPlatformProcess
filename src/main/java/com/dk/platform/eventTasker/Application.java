@@ -1,5 +1,6 @@
 package com.dk.platform.eventTasker;
 
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
 import com.dk.platform.eventTasker.process.InitializeProcess;
 import com.dk.platform.eventTasker.process.PeriodicallyReportProcess;
@@ -23,46 +24,61 @@ public class Application implements com.dk.platform.Application {
 
     static {
         try {
-            System.out.println("Application Static Block");
+            logger.info("Application Static Block");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private InitializeProcess initialize;
+    private InitializeProcess initializeProcess;
 
     @Override
     public void initialize() {
-        this.initialize = new InitializeProcess();
+        initializeProcess = InitializeProcess.builder()
+                .emsServerUrl(AppPro.EMS_URL.getValue())
+                .emsUserName(AppPro.EMS_USR.getValue())
+                .emsPassword(AppPro.EMS_PWD.getValue())
+                .build();
 
     }
 
     public Application() {
 
         this.initialize();
-        if(this.initialize == null){
-            this.initialize = new InitializeProcess();
-        }
+        this.initializeProcess.setUpInstance();
 
         String MyName = MemoryStorage.getInstance().getPROCESS_NAME();
-        System.out.println(MyName);
+        logger.info("New Event Tasker is running now.  Set ThreadName : {}", MyName);
 
-        // Run all Process.
+
+        // Run Receiver Process.
         ReceiverProcess receiverProcess = new ReceiverProcess(MyName, Session.AUTO_ACKNOWLEDGE, false);
         try {
+
             receiverProcess.setUpInstance();
+            receiverProcess.setActive();
+            Thread thread = new Thread(receiverProcess);
+            thread.start();
+            logger.info("New Tasker Receiver Process is Start. Name : {}", MyName);
+
         } catch (TibjmsAdminException e) {
+            logger.error("Error While Setup Instance for Tasker Receiver Process.  {}/{}", e.getMessage(), e.toString());
             e.printStackTrace();
         }
-        receiverProcess.setActive();
-        Thread thread = new Thread(receiverProcess);
-        thread.start();
 
+
+
+        // Run PeriodicallyReportProcess.
+        PeriodicallyReportProcess periodicallyReportProcess = new PeriodicallyReportProcess();
         try {
-            PeriodicallyReportProcess periodicallyReportProcess = new PeriodicallyReportProcess();
+
+            periodicallyReportProcess.setUpInstance();
             Thread thread1 = new Thread(periodicallyReportProcess);
             thread1.start();
+            logger.info("New Tasker Periodically Report Process is Start. Name : {}", MyName);
+
         } catch (Exception e) {
+            logger.error("Error While Setup Instance for Tasker Periodically Report Process.  {}/{}", e.getMessage(), e.toString());
             e.printStackTrace();
         }
     }
@@ -70,8 +86,10 @@ public class Application implements com.dk.platform.Application {
 
 
     public static void main(String[] args) {
+
+
+        logger.info("Tasker Application is Running");
         new Application();
 
-        logger.info("hgello");
     }
 }

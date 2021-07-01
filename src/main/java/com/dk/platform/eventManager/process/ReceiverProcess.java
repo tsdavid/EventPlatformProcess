@@ -143,11 +143,12 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         // EMS Util
         if(this.memoryStorage.getEmsUtil() == null) {
             this.emsUtil = new EmsUtil();
+            this.memoryStorage.setEmsUtil(this.emsUtil);
         }
         this.emsUtil = this.memoryStorage.getEmsUtil();
 
         // Manager Util.
-        if(this.memoryStorage.getManagerUtil() == null) this.managerUtil = new ManagerUtil();
+        if(this.memoryStorage.getManagerUtil() == null) this.managerUtil = new ManagerUtil(this.emsUtil);
         this.managerUtil = this.memoryStorage.getManagerUtil();
 
         // Create EMS Connection.
@@ -395,9 +396,10 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     /**
      *
-     * @param taskerName            :           New Running Tasker Name
+     * @param newTaskerName            :           New Running Tasker Name
      */
     private void checkRebalancable(String newTaskerName){
+
 
         // Check Re-Balance Condition.
         if(managerUtil.isRebalanceCase(newTaskerName)){
@@ -425,7 +427,14 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
         logger.info(" Receive Message From : {}, Work Queue : {}", fromDestination, workQueues);
         int cnt = workQueues.split(",").length -1;
-        this.managerUtil.updateTaskerHealthCheck(fromDestination, workQueues, cnt);
+//        this.managerUtil.updateTaskerHealthCheck(fromDestination, workQueues, cnt);
+
+        try{
+            this.managerUtil.updateTaskerHealthCheck(fromDestination, workQueues, cnt);
+        }catch (Exception e){
+            logger.error("Error : {}/{}", e.getMessage(), e.toString());
+            e.printStackTrace();
+        }
 
     }
 

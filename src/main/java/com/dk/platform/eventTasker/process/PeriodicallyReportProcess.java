@@ -105,6 +105,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
                 // TODO THINK BETTER ==> Busy-Waiting...
 
                 Thread.sleep(delay * 1000L);
+
             } catch (InterruptedException e) {
                 logger.error("[{}] Error : {}/{}.","HealthCheck", e.getMessage(), e.toString());
                 e.printStackTrace();
@@ -112,7 +113,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
 
             // Send Health Check Message.
             taskerUtil.sendMessageToManager(true, false, false, "");
-            logger.debug("Tasker : {}.  Send Health Check Message ", memoryStorage.getPROCESS_NAME());
+            logger.info("Tasker : {}.  Send Health Check Message ", memoryStorage.getPROCESS_NAME());
 
         }
 
