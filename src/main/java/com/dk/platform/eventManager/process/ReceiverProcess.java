@@ -148,7 +148,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         this.emsUtil = this.memoryStorage.getEmsUtil();
 
         // Manager Util.
-        if(this.memoryStorage.getManagerUtil() == null) this.managerUtil = new ManagerUtil(this.emsUtil);
+        if(this.memoryStorage.getManagerUtil() == null) this.memoryStorage.setManagerUtil(new ManagerUtil(this.emsUtil));
         this.managerUtil = this.memoryStorage.getManagerUtil();
 
         // Create EMS Connection.

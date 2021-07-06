@@ -3,7 +3,7 @@ package com.dk.platform.eventManager;
 import com.dk.platform.ems.AppPro;
 import com.dk.platform.eventManager.process.ReceiverProcess;
 import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
-import com.dk.platform.eventTasker.process.InitializeProcess;
+import com.dk.platform.eventManager.process.InitializeProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

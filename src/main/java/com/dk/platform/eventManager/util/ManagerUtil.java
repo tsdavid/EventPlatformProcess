@@ -365,7 +365,12 @@ public class ManagerUtil {
      */
     public boolean isRebalanceCase(String newTaskerName) {
 
-        int o_tasker_size = this.searchO_Tasker(newTaskerName).length;
+        int o_tasker_size = 0;
+        try{
+            o_tasker_size = this.searchO_Tasker(newTaskerName).length;
+        }catch (Exception e){
+            logger.error("");
+        }
         return isTskCntEnough(o_tasker_size) && isWrkCntEnough(o_tasker_size) && isTmpQueueLess(newTaskerName);
     }
 

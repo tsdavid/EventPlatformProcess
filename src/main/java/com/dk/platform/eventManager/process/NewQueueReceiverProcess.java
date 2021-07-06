@@ -274,11 +274,14 @@ public class NewQueueReceiverProcess implements Runnable, Consumer, Process, Rec
     @Override
     public void handleMessage(Message message) {
 
+        logger.debug("Received Message : {}", message.toString());
+
 
         // Get Queue Name.
         String newQueue = null;
         try{
             newQueue = message.getStringProperty(PROPERTY_NAME);
+            logger.info("New Queue Created and It's Name is : {}.  Need to Check WORK QUEUE.", newQueue);
 
         }catch (Exception e){
             logger.error("[{}] Error : {}/{}.","AssignWorkQueue", e.getMessage(), e.toString());

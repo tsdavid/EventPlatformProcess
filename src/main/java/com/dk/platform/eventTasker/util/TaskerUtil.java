@@ -220,6 +220,10 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
 
     /**
+     * Get Tasker Prefix. Concat with Number start from 1 to 999 and make possible name.
+     * Check Possible name is in EMS Server. if not, make possible name to process name.
+     * if exist move to next number util get process name.
+     *
      * Move to EmsUtil
      * Verified
      * Set-Up For Tasker Name.
@@ -227,8 +231,10 @@ public class TaskerUtil extends tibjmsPerfCommon{
      */
     public String setTaskerName() {
 
+
         for(int i=1;; i++){
             String possibleName = AppPro.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
+            logger.debug("Process Possible Name : {}.", possibleName);
 
             TibjmsAdmin tibjmsAdmin = emsUtil.getTibjmsAdmin();
             QueueInfo queueInfo = null;
@@ -238,14 +244,18 @@ public class TaskerUtil extends tibjmsPerfCommon{
                 logger.error("[{}] Error : {}/{}.","EtcLogic", e.getMessage(), e.toString());
                 e.printStackTrace();
             }
+
             // Does QueueName is not exist in Server, then use it !.
+            if(queueInfo == null) {
+                return possibleName;
 
-            if(queueInfo == null) return possibleName;
-                // If Exist, then Does it have receiver?, if not => use it!.
-            else if(queueInfo.getReceiverCount() == 0) return possibleName;
-
+            // If Exist, then Does it have receiver?, if not => use it!.
+            }else{
+                if(queueInfo.getReceiverCount() == 0) {
+                    return possibleName;
+                }
+            }
         }
-
     }
 
 

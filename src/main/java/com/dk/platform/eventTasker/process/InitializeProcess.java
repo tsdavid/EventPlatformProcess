@@ -92,6 +92,7 @@ public class InitializeProcess implements Process {
 
         this.MYNAME = taskerUtil.setTaskerName();
         memoryStorage.setPROCESS_NAME(this.MYNAME);
+        logger.info("Process Name is ready to Set-up : {}.", MYNAME);
 
     }
 
