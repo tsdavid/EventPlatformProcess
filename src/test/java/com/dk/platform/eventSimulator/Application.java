@@ -1,6 +1,7 @@
 package com.dk.platform.eventSimulator;
 
 
+import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 /**
  * This is a Message Generator(Producer) for test Event Manager and Event Tasker.
@@ -28,22 +33,22 @@ public class Application implements Runnable{
 
     static {
         try {
-            log.info("" +
-                    "" +
-                    "=========================================================\n" +
-                    "=========================================================\n" +
-                    "======         ==========================================\n" +
-                    "=========================================================\n" +
-                    "=========================================================\n" +
-                    "=========================================================\n" +
-                    "Application Event Simulator Static Block\n"+
-                    "=========================================================\n" +
-                    "=========================================================\n" +
-                    "======         ==========================================\n" +
-                    "=========================================================\n" +
-                    "=========================================================\n" +
-                    "=========================================================\n" +
-                    "");
+//            log.info("" +
+//                    "" +
+//                    "=========================================================\n" +
+//                    "=========================================================\n" +
+//                    "======         ==========================================\n" +
+//                    "=========================================================\n" +
+//                    "=========================================================\n" +
+//                    "=========================================================\n" +
+//                    "Application Event Simulator Static Block\n"+
+//                    "=========================================================\n" +
+//                    "=========================================================\n" +
+//                    "======         ==========================================\n" +
+//                    "=========================================================\n" +
+//                    "=========================================================\n" +
+//                    "=========================================================\n" +
+//                    "");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -70,7 +75,7 @@ public class Application implements Runnable{
             e.printStackTrace();
         }
 
-        getArgs(args);
+//        getArgs(args);
 
         // Create Thread run Send Process.
         // Application -> getArgs -> Run Producer -> Get Message
@@ -85,20 +90,58 @@ public class Application implements Runnable{
      * @param qcount
      * @param count
      * @param deliveryMode
-     * @param thread
      * @param MessageType
      * @param NameRandom
      */
     private void runProducer(int qcount, int count, int deliveryMode,
-                             int thread, String MessageType, boolean NameRandom){
-
-        // Create Vector for threads.
-        threadVector = new Vector<>(thread);
+                             String MessageType, boolean NameRandom){
 
 
-        // Run Producer Class.
+        // Create Array with Queue Name
+        for(int i=0; i< qcount; i++){
+            int tail = i+1;
+            if(NameRandom) tail = (int) (Math.random() * 9999);
+            String queueName = AppPro.EMS_WRK_PREFIX.getValue().concat(String.valueOf(tail));
+            producingMessage(count, queueName);
+        }
+
         // TODO Run Process
-        // Thread => Class
+
+    }
+
+    private void producingMessage(int messageCount, String... queues){
+        Stream<Object> messageSendingFutures = Arrays.asList(queues).stream()
+                                             .map(queue -> CompletableFuture.runAsync(
+                                                     () -> {
+                                                         try {
+                                                             sendMessageUsingLoop(queue, messageCount);
+                                                         } catch (JMSException e) {
+                                                             e.printStackTrace();
+                                                         }
+                                                     }));
+
+    }
+
+
+    private void producingMessage(int messageCount, String queue){
+
+        CompletableFuture<Void> messageSendingFuture = CompletableFuture.runAsync(
+                () -> {
+                    try {
+                        sendMessageUsingLoop(queue, messageCount);
+                    } catch (JMSException e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
+
+        try {
+            messageSendingFuture.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -107,11 +150,40 @@ public class Application implements Runnable{
      * @param type
      * @return
      */
-    private String getMessage(String type, int number){
+    private String getMessageFormat(String type){
 
-        // TODO Message Generator.
+        // TODO Get Message  Format with Type from Message Generator.
         return "";
     }
+
+
+
+
+    /**
+     *
+     * @param QueueName
+     * @throws JMSException
+     */
+    private void sendMessageUsingLoop(String QueueName, int count) throws JMSException {
+
+        String queueName = QueueName;
+        log.info("sendMessageUsingLoop has benn sent to QueueName : {}, and count : {}", QueueName, count);
+//        for(int i=0; i < count; i++){
+//            this.emsUtil.sendSyncQueueMessage(QueueName, getMessage(i), null);
+//        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    private String getMessage(int number){
+
+        // TODO Get Message with Increasing Number.
+        // Message Type will be
+        return "";
+    }
+
 
 
 
@@ -142,18 +214,6 @@ public class Application implements Runnable{
 
     }
 
-    /**
-     *
-     * @param QueueName
-     * @param Message
-     * @throws JMSException
-     */
-    private void sendEmsMessage(String QueueName, String Message) throws JMSException {
-
-        String queueName = QueueName;
-        String message = Message;
-        this.emsUtil.sendSyncQueueMessage(QueueName, Message, null);
-    }
 
     private void getArgs(String[] args){
         int i=0;
@@ -235,6 +295,8 @@ public class Application implements Runnable{
         System.out.println(
                 application.toString()
         );
+
+        application.runProducer(10, 100, 1, "",true);
 
     }
 }

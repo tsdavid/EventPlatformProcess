@@ -1,10 +1,10 @@
 
 EVENT MANAGER
-0. MANAGER가 처음 기동할 떄, EMS에 기동 중인 TASKER, WORK QUEUE등의 정보를 캐치
+0. MANAGER 초기 셋업 = MANAGER가 처음 기동할 떄, EMS에 기동 중인 TASKER, WORK QUEUE등의 정보를 캐치
 1. WORK QUEUE가 신규로 생성되는 이벤트 캐치,
-2. 신규 생성된 WORK QUEUE를 TASKER에 통신(Queue)
-3. 각각 TASKER에서 처리하고 있는 WORK QUEUE 관리        ::      Work Queue 관리를 위한 Data Structure 필요.
-4. 실행 중인 TASKER 관리.                             ::      TASKER VO, Map으로 관리.
+2. 신규 생성된 WORK QUEUE를 TASKER에 분배
+3. 각각 TASKER에서 처리하고 있는 WORK QUEUE 관리         ::      Work Queue 관리를 위한 Data Structure 필요.
+4. 실행 중인 TASKER 관리(Health Check Message)        ::      TASKER VO, Map으로 관리.
 
 
 COMMUNICATION BETWEEN TASKERs
