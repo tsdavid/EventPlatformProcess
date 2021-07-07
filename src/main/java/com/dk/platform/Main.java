@@ -30,11 +30,18 @@ public class Main {
 				"=========================================================\n" +
 				"");
 
-		new com.dk.platform.eventTasker.Application();
-		logger.info("Event Tasker Process ara Running.");
 
 		new com.dk.platform.eventManager.Application();
 		logger.info("Event Manager Process ara Running.");
+
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		new com.dk.platform.eventTasker.Application();
+		logger.info("Event Tasker Process ara Running.");
 
 	}
 	

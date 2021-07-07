@@ -8,8 +8,11 @@ import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
 
 /**
  * Main Job
@@ -24,6 +27,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 @NoArgsConstructor
+@Slf4j
 public class InitializeProcess implements Process {
 
 
@@ -31,7 +35,6 @@ public class InitializeProcess implements Process {
      **************************************  Logger ******************************************
      ****************************************************************************************/
 
-    private static final Logger logger = LoggerFactory.getLogger(InitializeProcess.class);
 
 
     private EmsUtil emsUtil;
@@ -76,7 +79,7 @@ public class InitializeProcess implements Process {
 
         } catch (TibjmsAdminException e) {
 
-            logger.error("[{}] Cannot Get EmsUtil Instance. Exit System. Error : {}/{}.","ManagerInitialize", e.getMessage(), e.toString());
+            log.error("[{}] Cannot Get EmsUtil Instance. Exit System. Error : {}/{}.","ManagerInitialize", e.getMessage(), e.toString());
             e.printStackTrace();
             System.exit(1);
         }
@@ -108,16 +111,23 @@ public class InitializeProcess implements Process {
     private void scanEmsServer() {
 
         String[] deactiveWrkQs = this.scanDeActiveWorkQueue();
+        log.info(" deactiveWorkQueue List : {}", Arrays.toString(deactiveWrkQs));
 
         // if tasker is in Map.
         String assignableTasker = managerUtil.findIdleTasker();
+
         //TODO THINK BETTER ==> Recevier 가 기동 전이라 Tasker가 항상 없을거 같다.
         //  처음에 뜰때, Tasker 정보도 얻고 바로 queue를 할당 해줘야 할거 같음. Tasker Health Check Message 기다리기엔..
         // ==> execute method를 Receiver 다 뜬 후에 설정하는 것으로 해결
         for(String Wq : deactiveWrkQs){
-            if(assignableTasker != null) managerUtil.assignWrkQtoTSK(Wq, assignableTasker); // Assign De-Active WRK Q to Tasker.
-            else{   // IF No Tasker in Map. Save in Tmp Set.
+            if(assignableTasker != null) {
+                managerUtil.assignWrkQtoTSK(Wq, assignableTasker); // Assign De-Active WRK Q to Tasker.
+                log.info("Tasker is Already in Map.  Here is Assignable Tasker : {}", assignableTasker);
+
+
+            }else{   // IF No Tasker in Map. Save in Tmp Set.
                 managerUtil.saveWorkQueueToTMP(Wq);
+                log.info("No Tasker in Map. Send to Temporary Work Queue : {}.", Wq);
             }
         }
     }

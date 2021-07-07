@@ -293,7 +293,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         // Parsing Message.
         try {
             String header = textMessage.getStringProperty(AppPro.MSG_TYPE.getValue());
-            System.out.println(header + " And Message Contents : " + textMessage.getText());
+            logger.debug(" Header : {} and it's Message Body : {}", header, textMessage.getText());
 
             // New Tasker Arrive Case.
             if(header.equals(TSK_INIT)) this.taskerInitProcess(textMessage.getText());
@@ -425,7 +425,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
      */
     private void taskerReportProcess(String fromDestination, String workQueues){
 
-        logger.info(" Receive Message From : {}, Work Queue : {}", fromDestination, workQueues);
+        logger.debug(" Receive Health Check Message From : {}, Work Queue : {}", fromDestination, workQueues);
         int cnt = workQueues.split(",").length -1;
 //        this.managerUtil.updateTaskerHealthCheck(fromDestination, workQueues, cnt);
 

@@ -386,9 +386,18 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     private void invokeReceiverSubProcess(String assignedWorkQueue, int num) throws JMSException {
 
         String name = "WorkReceiverThread-" + num;
+
+
         // Invoke WorkQueueReceiverSubProcess
         WorkQueueReceiverSubProcess subProcess = new WorkQueueReceiverSubProcess(name, assignedWorkQueue);
-        subProcess.setActive();
+        try {
+            subProcess.setUpInstance();
+            subProcess.setActive();
+
+        } catch (TibjmsAdminException e) {
+            logger.error("Error : {}/{}.", e.getMessage(), e.toString());
+            e.printStackTrace();
+        }
 
         // Invoke New Thread.
         Thread thread = new Thread(subProcess);

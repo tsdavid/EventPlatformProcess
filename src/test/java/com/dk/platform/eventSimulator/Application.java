@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -33,22 +33,22 @@ public class Application implements Runnable{
 
     static {
         try {
-//            log.info("" +
-//                    "" +
-//                    "=========================================================\n" +
-//                    "=========================================================\n" +
-//                    "======         ==========================================\n" +
-//                    "=========================================================\n" +
-//                    "=========================================================\n" +
-//                    "=========================================================\n" +
-//                    "Application Event Simulator Static Block\n"+
-//                    "=========================================================\n" +
-//                    "=========================================================\n" +
-//                    "======         ==========================================\n" +
-//                    "=========================================================\n" +
-//                    "=========================================================\n" +
-//                    "=========================================================\n" +
-//                    "");
+            log.info("" +
+                    "" +
+                    "=========================================================\n" +
+                    "=========================================================\n" +
+                    "======         ==========================================\n" +
+                    "=========================================================\n" +
+                    "=========================================================\n" +
+                    "=========================================================\n" +
+                    "Application Event Simulator Static Block\n"+
+                    "=========================================================\n" +
+                    "=========================================================\n" +
+                    "======         ==========================================\n" +
+                    "=========================================================\n" +
+                    "=========================================================\n" +
+                    "=========================================================\n" +
+                    "");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -60,12 +60,14 @@ public class Application implements Runnable{
     private int count = 10000;
     private int time = 0;
     private int delivery = DeliveryMode.PERSISTENT;
-    private int thread = 1;
     private String type = "";
-    private boolean random = false;
+    private boolean random = true;
 
     private Vector<Thread> threadVector = null;
     private EmsUtil  emsUtil;
+
+    private long startTime = 0;
+
 
     public Application(String[] args){
 
@@ -75,10 +77,15 @@ public class Application implements Runnable{
             e.printStackTrace();
         }
 
-//        getArgs(args);
+        getArgs(args);
 
         // Create Thread run Send Process.
         // Application -> getArgs -> Run Producer -> Get Message
+
+
+        startTime = System.currentTimeMillis();
+        this.runProducer(this.qcount, this.count,"", this.random);
+        log.info(" ElapsedTime : {}", System.currentTimeMillis() - startTime);
 
 
     }
@@ -89,26 +96,40 @@ public class Application implements Runnable{
      * Run Producer Thread.
      * @param qcount
      * @param count
-     * @param deliveryMode
      * @param MessageType
      * @param NameRandom
      */
-    private void runProducer(int qcount, int count, int deliveryMode,
-                             String MessageType, boolean NameRandom){
+    private void runProducer(int qcount, int count, String MessageType, boolean NameRandom){
 
 
+        ArrayList<CompletableFuture> completableFutures = new ArrayList<>();
         // Create Array with Queue Name
         for(int i=0; i< qcount; i++){
             int tail = i+1;
             if(NameRandom) tail = (int) (Math.random() * 9999);
             String queueName = AppPro.EMS_WRK_PREFIX.getValue().concat(String.valueOf(tail));
-            producingMessage(count, queueName);
+            completableFutures.add(producingMessage(count, queueName));
         }
 
         // TODO Run Process
+        for(CompletableFuture completableFuture : completableFutures){
+            try {
+                completableFuture.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
+    /**
+     *
+     * @param messageCount
+     * @param queues
+     */
+    @Deprecated
     private void producingMessage(int messageCount, String... queues){
         Stream<Object> messageSendingFutures = Arrays.asList(queues).stream()
                                              .map(queue -> CompletableFuture.runAsync(
@@ -123,7 +144,13 @@ public class Application implements Runnable{
     }
 
 
-    private void producingMessage(int messageCount, String queue){
+    /**
+     *
+     * @param messageCount
+     * @param queue
+     */
+    private CompletableFuture producingMessage(int messageCount, String queue){
+
 
         CompletableFuture<Void> messageSendingFuture = CompletableFuture.runAsync(
                 () -> {
@@ -135,13 +162,15 @@ public class Application implements Runnable{
                 }
         );
 
-        try {
-            messageSendingFuture.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        return messageSendingFuture;
+
+//        try {
+//            messageSendingFuture.get();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        } catch (ExecutionException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
@@ -168,9 +197,9 @@ public class Application implements Runnable{
 
         String queueName = QueueName;
         log.info("sendMessageUsingLoop has benn sent to QueueName : {}, and count : {}", QueueName, count);
-//        for(int i=0; i < count; i++){
-//            this.emsUtil.sendSyncQueueMessage(QueueName, getMessage(i), null);
-//        }
+        for(int i=0; i < count; i++){
+            this.emsUtil.sendSyncQueueMessage(QueueName, getMessage(i), null);
+        }
     }
 
     /**
@@ -181,7 +210,7 @@ public class Application implements Runnable{
 
         // TODO Get Message with Increasing Number.
         // Message Type will be
-        return "";
+        return String.valueOf(number);
     }
 
 
@@ -243,11 +272,6 @@ public class Application implements Runnable{
                 delivery = Integer.parseInt(args[i+1]);
                 i += 2;
             }
-            else if (args[i].compareTo("-thread") == 0){
-                if ((i+1) >= args.length) usage();
-                thread = Integer.parseInt(args[i+1]);
-                i += 2;
-            }
             else if (args[i].compareTo("-random")==0){
                 i += 1;
                 random = true;
@@ -283,7 +307,6 @@ public class Application implements Runnable{
                 ", count=" + count +
                 ", time=" + time +
                 ", delivery=" + delivery +
-                ", thread=" + thread +
                 ", type='" + type + '\'' +
                 ", random=" + random +
                 '}';
@@ -296,7 +319,12 @@ public class Application implements Runnable{
                 application.toString()
         );
 
-        application.runProducer(10, 100, 1, "",true);
+//        try {
+//            new EmsUtil().destroyQueues(AppPro.EMS_WRK_PREFIX.getValue());
+//        } catch (TibjmsAdminException e) {
+//            e.printStackTrace();
+//        }
+
 
     }
 }

@@ -4,6 +4,8 @@ package com.dk.platform.eventManager.util;
 import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.vo.TaskerVO;
+import javafx.concurrent.Task;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 2. Assign Work Logic
  * 3. Re-Balance Logic
  */
+@Slf4j
 public class ManagerUtil {
 
     /*****************************************************************************************
@@ -236,10 +239,11 @@ public class ManagerUtil {
         if(Tasker != null){
             try {
                 this.sendAssignWrkMessage(Tasker, WorkQueueName);
+                log.info("Tasker : {} get a Work Queue : {}.", Tasker, WorkQueueName);
 
             } catch (JMSException e) {
 
-                logger.error("[{}] Error : {}/{}.","AssignWRK", e.getMessage(), e.toString());
+                log.error("[{}] Error : {}/{}.","AssignWRK", e.getMessage(), e.toString());
                 e.printStackTrace();
             }
 
@@ -247,6 +251,7 @@ public class ManagerUtil {
         }else {
             // Save Work Queue to TMP Queue Storage.
             this.saveWorkQueueToTMP(WorkQueueName);
+            log.error("Tasker : {} is null. so Send Tasker to Temporary Queue. Queue Name : {}", Tasker, WorkQueueName);
         }
 
     }

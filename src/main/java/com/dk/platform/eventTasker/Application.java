@@ -46,6 +46,7 @@ public class Application implements com.dk.platform.Application {
 
         this.initialize();
         this.initializeProcess.setUpInstance();
+        this.initializeProcess.execute();
 
         String MyName = MemoryStorage.getInstance().getPROCESS_NAME();
         logger.info("New Event Tasker is running now.  Set ThreadName : {}", MyName);

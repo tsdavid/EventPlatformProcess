@@ -134,6 +134,7 @@ public class InitializeProcess implements Process {
 
             emsUtil.sendQueueMessage(AppPro.EMS_MNG_QUEUE_NAME.getValue(), this.MYNAME,init_properties,
                     0, false, true);
+            logger.info(" New Tasker Send Init Message to Manager.");
 
         } catch (JMSException e) {
 

@@ -6,6 +6,7 @@ import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
 import com.dk.platform.eventTasker.vo.QueueVO;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * Main Job
  * 1. Process Logic.
  */
+@Slf4j
 public class PeriodicallyReportProcess implements Runnable, Process {
 
 
@@ -113,7 +115,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
 
             // Send Health Check Message.
             taskerUtil.sendMessageToManager(true, false, false, "");
-            logger.info("Tasker : {}.  Send Health Check Message ", memoryStorage.getPROCESS_NAME());
+            logger.debug("Tasker : {}.  Send Health Check Message ", memoryStorage.getPROCESS_NAME());
 
         }
 

@@ -14,12 +14,14 @@ import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import java.sql.Timestamp;
 
+@Slf4j
 public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process, Receiver {
 
     /*****************************************************************************************
@@ -303,7 +305,7 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
 
             // Handling Work Queue Message.
             String msgBody = textMessage.getText();
-            System.out.println(msgBody);
+            log.debug(msgBody);
 
         } catch (NullPointerException e) {
 
