@@ -1,6 +1,6 @@
 package com.dk.platform.eventTasker.util;
 
-import com.dk.platform.ems.AppPro;
+import com.dk.platform.common.EppConf;
 import com.dk.platform.ems.util.EmsUtil;
 
 import javax.jms.*;
@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class TaskerUtil extends tibjmsPerfCommon{
 
-    /*****************************************************************************************
+    /*
      **************************************  Logger ******************************************
      ****************************************************************************************/
 
@@ -31,7 +31,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
     private static final Logger logger = LoggerFactory.getLogger(TaskerUtil.class);
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Variables ******************************************
      *****************************************************************************************/
 
@@ -43,6 +43,10 @@ public class TaskerUtil extends tibjmsPerfCommon{
     private MemoryStorage memoryStorage;
 
     private EmsUtil emsUtil = null;
+
+    private EppConf eppConf;
+
+    private String ManagerName;
 
     /*
      ********************************  Message Properties ************************************
@@ -67,7 +71,8 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
 
     /* PROP */
-    private final String FROM_TASKER_PROP = AppPro.TSK_HLTH_FROM_PROP.getValue();
+    private final String FROM_TASKER_PROP = MemoryStorage.getInstance().getEppConf().message.getTSK_Health_Msg_FromVal();
+
 
 
 
@@ -125,6 +130,10 @@ public class TaskerUtil extends tibjmsPerfCommon{
         this.memoryStorage = MemoryStorage.getInstance();
 
         this.emsUtil = memoryStorage.getEmsUtil();
+
+        this.eppConf = memoryStorage.getEppConf();
+
+        ManagerName = eppConf.ems.getManagerQueueVal();
     }
 
 
@@ -148,9 +157,14 @@ public class TaskerUtil extends tibjmsPerfCommon{
         this.HealthCheckProperties = new HashMap<>(); this.CompleteQueueProperties = new HashMap<>();
         this.RebalanceReturnedQueueProperties = new HashMap<>();
 
-        this.HealthCheckProperties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_HLTH_MNG_VAL.getValue());
-        this.CompleteQueueProperties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_COM_WRK_MNG_VAL.getValue());
-        this.RebalanceReturnedQueueProperties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_RBL_RTN_MNG_VAL.getValue());
+//        this.HealthCheckProperties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_HLTH_MNG_VAL.getValue());
+        this.HealthCheckProperties.put(eppConf.message.getMessage_TypeVal(), eppConf.message.getTSK_Health_MessageVal());
+
+//        this.CompleteQueueProperties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_COM_WRK_MNG_VAL.getValue());
+        this.CompleteQueueProperties.put(eppConf.message.getMessage_TypeVal(), eppConf.message.getTSK_Complete_WRK_To_ManagerVal());
+
+//        this.RebalanceReturnedQueueProperties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_RBL_RTN_MNG_VAL.getValue());
+        this.RebalanceReturnedQueueProperties.put(eppConf.message.getMessage_TypeVal(), eppConf.message.getTSK_RBL_Return_MessageVal());
 
     }
 
@@ -171,7 +185,6 @@ public class TaskerUtil extends tibjmsPerfCommon{
     public void sendMessageToManager(boolean ishealth, boolean isRebalanceReturn,  boolean isComMsg, String workQueueName){
 
         // Destination Information.
-        String toManager = AppPro.EMS_MNG_QUEUE_NAME.getValue();
 
         // Set-up For Properties.
         Map<String,String> properties = null;
@@ -202,7 +215,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
         // Send Queue
         try {
-            emsUtil.sendSafeQueueMessage(toManager, msg, properties);
+            emsUtil.sendSafeQueueMessage(ManagerName, msg, properties);
 
         } catch (JMSException e) {
             logger.error("[{}] Error : {}/{}.","ReportManager", e.getMessage(), e.toString());
@@ -233,7 +246,9 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
 
         for(int i=1;; i++){
-            String possibleName = AppPro.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
+//            String possibleName = AppPro.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
+            String possibleName = eppConf.ems.getTaskQueueVal().concat(String.valueOf(i));
+
             logger.debug("Process Possible Name : {}.", possibleName);
 
             TibjmsAdmin tibjmsAdmin = emsUtil.getTibjmsAdmin();
@@ -271,14 +286,12 @@ public class TaskerUtil extends tibjmsPerfCommon{
     @Deprecated
     public void sendRebalanceReturnMessage(String workQueueName) {
 
-        // Destination Information.
-        String toManager = AppPro.EMS_MNG_QUEUE_NAME.getValue();
 
         // Set-up For Properties.
         Map<String,String> properties = this.RebalanceReturnedQueueProperties;
 
         try {
-            emsUtil.sendSafeQueueMessage(toManager, workQueueName, properties);
+            emsUtil.sendSafeQueueMessage(ManagerName, workQueueName, properties);
 
         } catch (JMSException e) {
             logger.error("[{}] Error : {}/{}.","ReportManager", e.getMessage(), e.toString());
@@ -292,8 +305,6 @@ public class TaskerUtil extends tibjmsPerfCommon{
      */
     @Deprecated
     public void sendHealthCheckMessage() {
-        // Destination Information.
-        String toManager = AppPro.EMS_MNG_QUEUE_NAME.getValue();
 
         // Send Message. Get All Work Queue.
         String msg = "";
@@ -305,7 +316,7 @@ public class TaskerUtil extends tibjmsPerfCommon{
         Map<String,String> properties = this.HealthCheckProperties;
         properties.put(FROM_TASKER_PROP,memoryStorage.getPROCESS_NAME());
         try {
-            emsUtil.sendAsyncQueueMessage(toManager, msg, properties);
+            emsUtil.sendAsyncQueueMessage(ManagerName, msg, properties);
         } catch (JMSException e) {
             e.printStackTrace();
         }
@@ -319,14 +330,12 @@ public class TaskerUtil extends tibjmsPerfCommon{
     @Deprecated
     public void sendCompleteWorkQueueMessage(String workQueueName) {
 
-        // Destination Information.
-        String toManager = AppPro.EMS_MNG_QUEUE_NAME.getValue();
 
         // Set-up For Properties.
         Map<String,String> properties = this.CompleteQueueProperties;
         properties.put(FROM_TASKER_PROP,memoryStorage.getPROCESS_NAME());
         try {
-            emsUtil.sendSafeQueueMessage(toManager, workQueueName, properties);
+            emsUtil.sendSafeQueueMessage(ManagerName, workQueueName, properties);
         } catch (JMSException e) {
             e.printStackTrace();
         }
@@ -339,27 +348,29 @@ public class TaskerUtil extends tibjmsPerfCommon{
 
 
     public static void main(String[] args) throws TibjmsAdminException {
-        EmsUtil emsUtil = null;
-        try {
-            emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
-        } catch (TibjmsAdminException e) {
-            e.printStackTrace();
-        }
 
-        TibjmsAdmin tibjmsAdmin  = emsUtil.getTibjmsAdmin();
-
-        QueueInfo[] queueInfo = tibjmsAdmin.getQueues(AppPro.EMS_TSK_PREFIX.getValue().concat("*"));
-        for(QueueInfo queueInfo1 : queueInfo){
-
-            System.out.println(queueInfo1 == null);
-            System.out.println(queueInfo1.getName());
-
-            System.out.println(tibjmsAdmin.getQueue(queueInfo1.getName()).getReceiverCount());
-        }
-
-        System.out.println("GetQueue");
-        QueueInfo queueInfo1 = tibjmsAdmin.getQueue("F1.EEP.MGR.TSK.1");
-        System.out.println(queueInfo1.getName());
+//        EmsUtil emsUtil = null;
+//        try {
+//            emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
+//
+//        } catch (TibjmsAdminException e) {
+//            e.printStackTrace();
+//        }
+//
+//        TibjmsAdmin tibjmsAdmin  = emsUtil.getTibjmsAdmin();
+//
+//        QueueInfo[] queueInfo = tibjmsAdmin.getQueues(AppPro.EMS_TSK_PREFIX.getValue().concat("*"));
+//        for(QueueInfo queueInfo1 : queueInfo){
+//
+//            System.out.println(queueInfo1 == null);
+//            System.out.println(queueInfo1.getName());
+//
+//            System.out.println(tibjmsAdmin.getQueue(queueInfo1.getName()).getReceiverCount());
+//        }
+//
+//        System.out.println("GetQueue");
+//        QueueInfo queueInfo1 = tibjmsAdmin.getQueue("F1.EEP.MGR.TSK.1");
+//        System.out.println(queueInfo1.getName());
 
     }
 

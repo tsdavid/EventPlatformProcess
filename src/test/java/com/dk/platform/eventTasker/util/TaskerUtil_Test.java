@@ -9,7 +9,6 @@ import com.tibco.tibjms.admin.TibjmsAdminException;
 import org.junit.After;
 import org.junit.Test;
 
-import javax.jms.JMSException;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;

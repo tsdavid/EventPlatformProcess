@@ -1,7 +1,6 @@
 package com.dk.platform.eventTasker.process;
 
 import com.dk.platform.Process;
-import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
@@ -24,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class PeriodicallyReportProcess implements Runnable, Process {
 
 
-    /*****************************************************************************************
+    /*
      **************************************  Logger ******************************************
      ****************************************************************************************/
 
@@ -32,7 +31,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
     private static final Logger logger = LoggerFactory.getLogger(PeriodicallyReportProcess.class);
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Variables ******************************************
      ****************************************************************************************/
 
@@ -69,7 +68,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
     }
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Process Logic **************************************
      *****************************************************************************************/
 
@@ -100,9 +99,10 @@ public class PeriodicallyReportProcess implements Runnable, Process {
 
         // TODO THINK BETTER ==> while???, Thread Sleep????? ==> Busy Wait Case..
         // Only way to use while loop?
+//        int delay = Integer.parseInt(AppPro.TSK_POLLING_INTERVAL.getValue());
+        int delay = memoryStorage.getEppConf().process.getTSK_Polling_IntervalVal();
         while (true){
 
-            int delay = Integer.parseInt(AppPro.TSK_POLLING_INTERVAL.getValue());
             try {
                 // TODO THINK BETTER ==> Busy-Waiting...
 
@@ -122,7 +122,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
     }
 
 
-    /*****************************************************************************************
+    /*
      *************************************  Deprecated ***************************************
      ****************************************************************************************/
 
@@ -136,7 +136,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
             System.out.println("Perodically Tasker Health Check Message");
             taskerUtil.sendHealthCheckMessage();
         };
-        int delay = Integer.parseInt(AppPro.TSK_POLLING_INTERVAL.getValue());
+        int delay = memoryStorage.getEppConf().process.getTSK_Polling_IntervalVal();
         executorService.schedule(runnable, 1, TimeUnit.SECONDS);
     }
 
@@ -153,7 +153,8 @@ public class PeriodicallyReportProcess implements Runnable, Process {
     @Deprecated
     private void PutTestWorkQueue(String name) {
 
-        String testQueueName = AppPro.EMS_WRK_PREFIX.getValue().concat(name);
+//        String testQueueName = AppPro.EMS_WRK_PREFIX.getValue().concat(name);
+        String testQueueName = "";
         QueueVO queueVO = QueueVO.builder()
                 .queueName(testQueueName)
                 .created_Time(new Timestamp(System.currentTimeMillis()))
@@ -163,7 +164,7 @@ public class PeriodicallyReportProcess implements Runnable, Process {
     }
 
 
-    /*****************************************************************************************
+    /*
      *************************************  Main *********************************************
      ****************************************************************************************/
 

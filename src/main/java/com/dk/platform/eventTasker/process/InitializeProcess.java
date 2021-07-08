@@ -1,14 +1,13 @@
 package com.dk.platform.eventTasker.process;
 
 import com.dk.platform.Process;
-import com.dk.platform.ems.AppPro;
+import com.dk.platform.common.EppConf;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
 import com.tibco.tibjms.admin.QueueInfo;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +25,6 @@ import java.util.*;
  *  1-1. check EMS find Queue with TASKER prefix.
  *  1-2. if> tasker is on EMS, Set Name
  */
-@NoArgsConstructor
 public class InitializeProcess implements Process {
 
 
@@ -47,19 +45,23 @@ public class InitializeProcess implements Process {
 
     private String emsPassword;
 
+    private EppConf eppConf;
 
-    /*****************************************************************************************
+
+
+    /*
      ***********************************  Constructor ****************************************
      ****************************************************************************************/
 
-    @Builder
-    public InitializeProcess(String emsServerUrl, String emsUserName, String emsPassword) {
+    public InitializeProcess(String filePath){
 
-        this.emsServerUrl = emsServerUrl;
+        eppConf = new EppConf(filePath);
 
-        this.emsUserName = emsUserName;
+        emsServerUrl = eppConf.ems.getUrlVal();
 
-        this.emsPassword = emsPassword;
+        emsUserName = eppConf.ems.getUsrVal();
+
+        emsPassword = eppConf.ems.getPwdVal();
 
     }
 
@@ -79,6 +81,9 @@ public class InitializeProcess implements Process {
             this.emsUtil = new EmsUtil(this.emsServerUrl, this.emsUserName, this.emsPassword);
             memoryStorage.setEmsUtil(this.emsUtil);
 
+            memoryStorage.setEppConf(eppConf);
+
+
         } catch (TibjmsAdminException e) {
 
             logger.error("[{}] Cannot Get EmsUtil Instance. Exit System. Error : {}/{}.","TaskerInitialize", e.getMessage(), e.toString());
@@ -93,6 +98,7 @@ public class InitializeProcess implements Process {
         this.MYNAME = taskerUtil.setTaskerName();
         memoryStorage.setPROCESS_NAME(this.MYNAME);
         logger.info("Process Name is ready to Set-up : {}.", MYNAME);
+
 
     }
 
@@ -117,10 +123,10 @@ public class InitializeProcess implements Process {
     }
 
 
+
     /*
      *******************************  Send Init Message Logic ********************************
      *****************************************************************************************/
-
     /**
      * Send Queue Message to Manager to let know new Tasker is run.
      */
@@ -128,11 +134,12 @@ public class InitializeProcess implements Process {
 
         // Set-up Message Properties.
         Map<String, String> init_properties = new HashMap<>();
-        init_properties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_INIT_MNG_VAL.getValue());
+//        init_properties.put(AppPro.MSG_TYPE.getValue(), AppPro.TSK_INIT_MNG_VAL.getValue());
+        init_properties.put(eppConf.message.getMessage_TypeVal(), eppConf.message.getTSK_Init_To_ManagerVal());
 
         try {
 
-            emsUtil.sendQueueMessage(AppPro.EMS_MNG_QUEUE_NAME.getValue(), this.MYNAME,init_properties,
+            emsUtil.sendQueueMessage(eppConf.ems.getManagerQueueVal(), this.MYNAME,init_properties,
                     0, false, true);
             logger.info(" New Tasker Send Init Message to Manager.");
 
@@ -146,10 +153,10 @@ public class InitializeProcess implements Process {
     }
 
 
+
     /*
      *************************************  Deprecated ***************************************
      ****************************************************************************************/
-
     /**
      * Set-Up For Tasker Name.
      * @return          :       New Tasker Name.
@@ -158,13 +165,25 @@ public class InitializeProcess implements Process {
     private String setTaskerName() {
 
         for(int i=1;; i++){
-            String possibleName = AppPro.EMS_TSK_PREFIX.getValue().concat(String.valueOf(i));
+            String possibleName = eppConf.ems.getTaskQueueVal().concat(String.valueOf(i));
             QueueInfo queueInfo = emsUtil.getQueueInfo(possibleName);
             // Does QueueName is not exist in Server, then use it !.
             if(queueInfo == null) return possibleName;
                 // If Exist, then Does it have receiver?, if not => use it!.
             else if(queueInfo.getReceiverCount() == 0) return possibleName;
         }
+
+    }
+
+    @Builder
+    @Deprecated
+    public InitializeProcess(String emsServerUrl, String emsUserName, String emsPassword) {
+
+        this.emsServerUrl = emsServerUrl;
+
+        this.emsUserName = emsUserName;
+
+        this.emsPassword = emsPassword;
 
     }
 

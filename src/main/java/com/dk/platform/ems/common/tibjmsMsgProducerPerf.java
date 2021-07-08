@@ -42,9 +42,6 @@ package com.dk.platform.ems.common;/*
  *   -xa                         Use XA transactions.
  */
 
-import com.dk.platform.ems.common.tibjmsPerfCommon;
-import com.dk.platform.ems.common.tibjmsUtilities;
-
 import java.io.*;
 import java.util.*;
 import javax.jms.*;

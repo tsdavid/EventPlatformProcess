@@ -21,18 +21,11 @@ public class Application implements com.dk.platform.Application{
 
     private InitializeProcess initializeProcess;
 
-    @Override
-    public void initialize() {
-        initializeProcess = InitializeProcess.builder()
-                .emsServerUrl(AppPro.EMS_URL.getValue())
-                .emsUserName(AppPro.EMS_USR.getValue())
-                .emsPassword(AppPro.EMS_PWD.getValue())
-                .build();
-    }
+    public Application() {}
 
-    public Application() {
+    public Application(String filePath) {
 
-        this.initialize();
+        this.initialize(filePath);
         this.initializeProcess.setUpInstance();
 
 
@@ -73,12 +66,22 @@ public class Application implements com.dk.platform.Application{
 
     }
 
+    @Override
+    public void initialize(String filePath) {
+        initializeProcess = InitializeProcess.builder()
+                .emsServerUrl(AppPro.EMS_URL.getValue())
+                .emsUserName(AppPro.EMS_USR.getValue())
+                .emsPassword(AppPro.EMS_PWD.getValue())
+                .build();
+    }
+
 
 
     public static void main(String[] args) {
 
+        // TODO EppConf File Path
         logger.info("Manager Application is Running");
-        new Application();
+        new Application("");
 
     }
 }

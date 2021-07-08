@@ -2,11 +2,10 @@ package com.dk.platform.eventTasker.process;
 
 import com.dk.platform.Process;
 import com.dk.platform.Receiver;
-import com.dk.platform.ems.AppPro;
+import com.dk.platform.common.EppConf;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
-import com.dk.platform.eventManager.util.ManagerUtil;
 import com.dk.platform.eventTasker.subProcess.WorkQueueReceiverSubProcess;
 import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
@@ -21,7 +20,7 @@ import java.util.Map;
 
 public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
-    /*****************************************************************************************
+    /*
      **************************************  Logger ******************************************
      ****************************************************************************************/
 
@@ -29,7 +28,7 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Variables ******************************************
      ****************************************************************************************/
 
@@ -55,21 +54,27 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
 
     private EmsUtil emsUtil;
 
+    private EppConf eppConf;
+
     private String ThreadName;
 
     private String MYNAME;
 
 
-    /*****************************************************************************************
+    /*
      ********************************  Message Properties ************************************
      ****************************************************************************************/
 
     /* PROP */
-    private final String MSG_TYPE_PROP = AppPro.MSG_TYPE.getValue();
+//    private final String MSG_TYPE_PROP = AppPro.MSG_TYPE.getValue();
+    private final String MSG_TYPE_PROP = MemoryStorage.getInstance().getEppConf().message.getMessage_TypeVal();
 
     /* VAL */
-    private final String MNG_RBL_CNT_VAL = AppPro.MNG_RBL_CNT_TSK_VAL.getValue();
-    private final String MNG_ASSIGN_TSK_VAL = AppPro.MNG_ASG_WRK_VAL.getValue();
+//    private final String MNG_RBL_CNT_VAL = AppPro.MNG_RBL_CNT_TSK_VAL.getValue();
+    private final String MNG_RBL_CNT_VAL = MemoryStorage.getInstance().getEppConf().message.getMNG_RBL_Count_To_TaskerVal();
+
+//    private final String MNG_ASSIGN_TSK_VAL = AppPro.MNG_ASG_WRK_VAL.getValue();
+    private final String MNG_ASSIGN_TSK_VAL = MemoryStorage.getInstance().getEppConf().message.getMNG_Assign_WRK_To_TaskerVal();
 
 
     /*
@@ -124,10 +129,10 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     public void setUpInstance() throws TibjmsAdminException {
 
         // Set-Up Thread Name.
-        this.ThreadName = this.setUpThreadName(NewQueueReceiverProcess.class.getSimpleName());
+        ThreadName = this.setUpThreadName(NewQueueReceiverProcess.class.getSimpleName());
         Thread thread = Thread.currentThread();
         String orginName = thread.getName();
-        thread.setName(this.ThreadName);
+        thread.setName(ThreadName);
         String ChangedName = thread.getName();
 
         if(ChangedName.equals(this.ThreadName)){
@@ -154,6 +159,10 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         if(this.memoryStorage.getTaskerUtil() == null) this.taskerUtil = new TaskerUtil();
         this.taskerUtil = this.memoryStorage.getTaskerUtil();
 
+
+        // EppConf
+        this.eppConf = memoryStorage.getEppConf();
+
         // Create EMS Connection.
         try {
             this.createEmsConnection();
@@ -177,11 +186,14 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
         String fullPackName = this.getClass().getPackage().getName();
         String packageName = null;
         // Tasker Case.
-        if(fullPackName.contains(AppPro.PACKAGE_TSK.getValue())) packageName = AppPro.PROCESS_TSK.getValue();
+//        if(fullPackName.contains(AppPro.PACKAGE_TSK.getValue())) packageName = AppPro.PROCESS_TSK.getValue();
+        if(fullPackName.contains(eppConf.process.getPackageTSKVal())) packageName = eppConf.process.getProcessTSKVal();
         // Manager Case.
-        if(fullPackName.contains(AppPro.PACKAGE_MNG.getValue())) packageName = AppPro.PROCESS_MNG.getValue();
+//        if(fullPackName.contains(AppPro.PACKAGE_MNG.getValue())) packageName = AppPro.PROCESS_MNG.getValue();
+        if(fullPackName.contains(eppConf.process.getPackageMNGVal())) packageName = eppConf.process.getProcessMNGVal();
         // Handler Case.
-        if(fullPackName.contains(AppPro.PACKAGE_HND.getValue())) packageName = AppPro.PROCESS_HND.getValue();
+//        if(fullPackName.contains(AppPro.PACKAGE_HND.getValue())) packageName = AppPro.PROCESS_HND.getValue();
+        if(fullPackName.contains(eppConf.process.getPackageHNDVal())) packageName = eppConf.process.getProcessHNDVal();
 
         return packageName + "-" + clazzName+"or";
     }
@@ -198,7 +210,8 @@ public class ReceiverProcess implements Runnable, Consumer, Process, Receiver {
     public void createEmsConnection() throws TibjmsAdminException, JMSException {
 
         if(this.emsUtil == null){
-            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
+//            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
+            this.connection = new EmsUtil(eppConf.ems.getUrlVal(), eppConf.ems.getUsrVal(), eppConf.ems.getPwdVal()).getEmsConnection();
         }
         this.connection = this.emsUtil.getEmsConnection();
         this.session = this.connection.createSession(ackMode);

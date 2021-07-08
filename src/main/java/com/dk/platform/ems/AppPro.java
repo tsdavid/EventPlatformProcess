@@ -5,6 +5,8 @@ import lombok.Getter;
 @Getter
 public enum AppPro {
 
+    PACKAGE_COMMON("com.dk.platform."),
+
     PROCESS_TSK("TSK"),
     PACKAGE_TSK("eventTasker"),
 
@@ -14,7 +16,6 @@ public enum AppPro {
     PROCESS_HND("HND"),
     PACKAGE_HND("eventHandler"),
 
-    PACKAGE_COMMON("com.dk.platform."),
 
     EMS_URL("tcp://140.238.31.93:7222"),
     EMS_USR("admin"),

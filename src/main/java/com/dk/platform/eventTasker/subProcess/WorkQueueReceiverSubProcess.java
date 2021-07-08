@@ -2,18 +2,14 @@ package com.dk.platform.eventTasker.subProcess;
 
 import com.dk.platform.Process;
 import com.dk.platform.Receiver;
-import com.dk.platform.ems.AppPro;
+import com.dk.platform.common.EppConf;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventManager.Consumer;
-import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
-import com.dk.platform.eventManager.util.ManagerUtil;
 import com.dk.platform.eventTasker.util.MemoryStorage;
 import com.dk.platform.eventTasker.util.TaskerUtil;
 import com.dk.platform.eventTasker.vo.QueueVO;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.admin.TibjmsAdminException;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +20,14 @@ import java.sql.Timestamp;
 @Slf4j
 public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process, Receiver {
 
-    /*****************************************************************************************
+    /*
      **************************************  Logger ******************************************
      ****************************************************************************************/
 
     private static final Logger logger = LoggerFactory.getLogger(WorkQueueReceiverSubProcess.class);
 
 
-    /*****************************************************************************************
+    /*
      ***********************************  Variables ******************************************
      ****************************************************************************************/
 
@@ -54,6 +50,8 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
     private TaskerUtil taskerUtil;
 
     private EmsUtil emsUtil;
+
+    private EppConf eppConf;
 
     private int ReceiveTimeOut;
 
@@ -89,8 +87,6 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
 
         this.ackMode = ackMode;
 
-        this.ReceiveTimeOut = Integer.parseInt(AppPro.TSK_REC_TIM_OUT.getValue()) * 1000;
-
     }
 
     /**
@@ -111,8 +107,6 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
 
         this.ackMode = ackMode;
         this.connection = emsUtil.getEmsConnection();
-
-        this.ReceiveTimeOut = Integer.parseInt(AppPro.TSK_REC_TIM_OUT.getValue()) * 1000;
 
     }
 
@@ -158,6 +152,10 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
         if(this.memoryStorage.getTaskerUtil() == null) this.taskerUtil = new TaskerUtil(this.emsUtil);
         this.taskerUtil = this.memoryStorage.getTaskerUtil();
 
+        // eppConf
+        this.eppConf = memoryStorage.getEppConf();
+        this.ReceiveTimeOut = eppConf.process.getSub_TSK_REC_Time_OutVal() * 1000;
+
         // Create EMS Connection.
         try {
             this.createEmsConnection();
@@ -184,7 +182,8 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
     public void createEmsConnection() throws TibjmsAdminException, JMSException {
 
         if(this.emsUtil == null){
-            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
+//            this.connection = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue()).getEmsConnection();
+            this.connection = new EmsUtil(eppConf.ems.getUrlVal(), eppConf.ems.getUsrVal(), eppConf.ems.getPwdVal()).getEmsConnection();
         }
         this.connection = this.emsUtil.getEmsConnection();
         this.session = this.connection.createSession(ackMode);
@@ -412,34 +411,34 @@ public class WorkQueueReceiverSubProcess implements Runnable, Consumer, Process,
 
     public static void main(String[] args) throws JMSException {
 
-        MemoryStorage memoryStorage = MemoryStorage.getInstance();
-
-
-        EmsUtil emsUtil = null;
-        try {
-            emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
-            memoryStorage.setEmsUtil(emsUtil);
-            memoryStorage.setTaskerUtil(new TaskerUtil(emsUtil));
-        } catch (TibjmsAdminException e) {
-            e.printStackTrace();
-        }
-
-        WorkQueueReceiverSubProcess subProcess = new WorkQueueReceiverSubProcess("Customemain","testQueue", Session.AUTO_ACKNOWLEDGE, emsUtil);
-        try {
-            subProcess.setUpInstance();
-        } catch (TibjmsAdminException e) {
-            e.printStackTrace();
-        }
-        subProcess.setActive();
-        subProcess.run();
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        subProcess.setCompleteWorkProcess("testQueue");
+//        MemoryStorage memoryStorage = MemoryStorage.getInstance();
+//
+//
+//        EmsUtil emsUtil = null;
+//        try {
+//            emsUtil = new EmsUtil(AppPro.EMS_URL.getValue(), AppPro.EMS_USR.getValue(), AppPro.EMS_PWD.getValue());
+//            memoryStorage.setEmsUtil(emsUtil);
+//            memoryStorage.setTaskerUtil(new TaskerUtil(emsUtil));
+//        } catch (TibjmsAdminException e) {
+//            e.printStackTrace();
+//        }
+//
+//        WorkQueueReceiverSubProcess subProcess = new WorkQueueReceiverSubProcess("Customemain","testQueue", Session.AUTO_ACKNOWLEDGE, emsUtil);
+//        try {
+//            subProcess.setUpInstance();
+//        } catch (TibjmsAdminException e) {
+//            e.printStackTrace();
+//        }
+//        subProcess.setActive();
+//        subProcess.run();
+//
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//
+//        subProcess.setCompleteWorkProcess("testQueue");
 
     }
 

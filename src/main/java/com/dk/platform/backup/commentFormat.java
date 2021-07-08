@@ -1,6 +1,5 @@
 package com.dk.platform.backup;
 
-import com.tibco.tibjms.admin.TibjmsAdminException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

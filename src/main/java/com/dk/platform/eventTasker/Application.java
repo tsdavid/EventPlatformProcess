@@ -1,7 +1,5 @@
 package com.dk.platform.eventTasker;
 
-import com.dk.platform.ems.AppPro;
-import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
 import com.dk.platform.eventTasker.process.InitializeProcess;
 import com.dk.platform.eventTasker.process.PeriodicallyReportProcess;
 import com.dk.platform.eventTasker.process.ReceiverProcess;
@@ -10,7 +8,6 @@ import com.tibco.tibjms.admin.TibjmsAdminException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jms.JMSException;
 import javax.jms.Session;
 
 /**
@@ -32,19 +29,11 @@ public class Application implements com.dk.platform.Application {
 
     private InitializeProcess initializeProcess;
 
-    @Override
-    public void initialize() {
-        initializeProcess = InitializeProcess.builder()
-                .emsServerUrl(AppPro.EMS_URL.getValue())
-                .emsUserName(AppPro.EMS_USR.getValue())
-                .emsPassword(AppPro.EMS_PWD.getValue())
-                .build();
+    public Application() {}
 
-    }
+    public Application(String filePath) {
 
-    public Application() {
-
-        this.initialize();
+        this.initialize(filePath);
         this.initializeProcess.setUpInstance();
         this.initializeProcess.execute();
 
@@ -55,7 +44,6 @@ public class Application implements com.dk.platform.Application {
         // Run Receiver Process.
         ReceiverProcess receiverProcess = new ReceiverProcess(MyName, Session.AUTO_ACKNOWLEDGE, false);
         try {
-
             receiverProcess.setUpInstance();
             receiverProcess.setActive();
             Thread thread = new Thread(receiverProcess);
@@ -84,13 +72,21 @@ public class Application implements com.dk.platform.Application {
         }
     }
 
+    @Override
+    public void initialize(String filePath) {
+
+
+        initializeProcess = new InitializeProcess(filePath);
+
+    }
+
 
 
     public static void main(String[] args) {
 
-
+        // TODO EppConf File Path
         logger.info("Tasker Application is Running");
-        new Application();
+        new Application("");
 
     }
 }

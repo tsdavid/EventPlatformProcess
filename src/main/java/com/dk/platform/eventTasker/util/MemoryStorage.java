@@ -1,5 +1,6 @@
 package com.dk.platform.eventTasker.util;
 
+import com.dk.platform.common.EppConf;
 import com.dk.platform.ems.util.EmsUtil;
 import com.dk.platform.eventTasker.vo.QueueVO;
 import org.slf4j.Logger;
@@ -45,6 +46,8 @@ public class MemoryStorage {
     private EmsUtil emsUtil;
 
     private TaskerUtil taskerUtil;
+
+    private EppConf eppConf;
 
     /**
      * Managing Queue in Map.
@@ -116,11 +119,17 @@ public class MemoryStorage {
         return taskerUtil;
     }
 
+    /**
+     *
+     * @return
+     */
+    public EppConf getEppConf() {
+        return eppConf;
+    }
 
     /*
      ***********************************  Setter *********************************************
      ****************************************************************************************/
-
     /**
      *
      * @param name          :       Process Name.
@@ -147,6 +156,14 @@ public class MemoryStorage {
         this.emsUtil = emsUtil;
     }
 
+
+    /**
+     *
+     * @param eppConf
+     */
+    public void setEppConf(EppConf eppConf) {
+        this.eppConf = eppConf;
+    }
 
     /*
      *************************************  Main *********************************************

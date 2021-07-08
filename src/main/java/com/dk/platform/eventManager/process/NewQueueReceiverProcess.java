@@ -12,7 +12,6 @@ import com.dk.platform.eventManager.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.Tibjms;
-import com.tibco.tibjms.TibjmsMapMessage;
 import com.tibco.tibjms.admin.TibjmsAdminException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -23,7 +23,6 @@ import javax.jms.*;
 import javax.naming.*;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.security.*;
 
 
 public class tibjmsUtilities

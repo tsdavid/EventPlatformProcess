@@ -2,7 +2,6 @@ package com.dk.platform;
 
 import com.tibco.tibjms.admin.TibjmsAdminException;
 
-import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
 

@@ -1,7 +1,5 @@
 package com.dk.platform.backup;
 
-import com.dk.platform.eventManager.util.ManagerUtil;
-
 public class SingleTone {
 
     private static class SingletonHelper {
