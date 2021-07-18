@@ -2,7 +2,7 @@ package com.dk.platform.backup;
 
 import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
-import com.dk.platform.eventManager.Consumer;
+import com.dk.platform.Consumer;
 import com.tibco.tibjms.Tibjms;
 import com.tibco.tibjms.TibjmsMapMessage;
 import com.tibco.tibjms.admin.TibjmsAdminException;

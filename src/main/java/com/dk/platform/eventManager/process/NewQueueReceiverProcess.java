@@ -8,7 +8,7 @@ import com.dk.platform.Process;
 import com.dk.platform.Receiver;
 import com.dk.platform.ems.AppPro;
 import com.dk.platform.ems.util.EmsUtil;
-import com.dk.platform.eventManager.Consumer;
+import com.dk.platform.Consumer;
 import com.dk.platform.eventManager.util.ManagerUtil;
 import com.dk.platform.eventManager.util.MemoryStorage;
 import com.tibco.tibjms.Tibjms;

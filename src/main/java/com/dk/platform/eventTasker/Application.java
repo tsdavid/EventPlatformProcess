@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.Session;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * EMS Connection 관리를 위해
@@ -85,8 +86,30 @@ public class Application implements com.dk.platform.Application {
     public static void main(String[] args) {
 
         // TODO EppConf File Path
-        logger.info("Tasker Application is Running");
-        new Application("");
+//        logger.info("Tasker Application is Running");
+//        new Application("");
+
+        ConcurrentLinkedDeque deque = new ConcurrentLinkedDeque();
+        deque.add("h"); deque.add("h1"); deque.add("h2");
+        logger.info(deque.toString());
+
+        logger.info((String) deque.poll());
+        logger.info(deque.toString());
+
+        Object obj = deque.peek();
+        logger.info((String) obj);
+        logger.info(deque.toString());
+
+        deque.add("h3");
+        logger.info(deque.toString());
+
+
+
+
+
+
+
+
 
     }
 }

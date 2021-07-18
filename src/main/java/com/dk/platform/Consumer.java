@@ -1,4 +1,4 @@
-package com.dk.platform.eventManager;
+package com.dk.platform;
 
 public interface Consumer {
 

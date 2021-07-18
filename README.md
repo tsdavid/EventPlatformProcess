@@ -31,7 +31,8 @@
 ![ApplicationArchitecture](src/main/resources/ppt/ApplicationArchitecture.png)
 
 
-> Application 위주로 프로젝트 구성.
+> Application 위주로 프로젝트 구성.  
+> Common 관련 파일 설정을 어떻게 해야하는 걸까..?
 
 
 

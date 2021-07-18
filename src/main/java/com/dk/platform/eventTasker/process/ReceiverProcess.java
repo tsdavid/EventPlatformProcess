@@ -4,7 +4,7 @@ import com.dk.platform.Process;
 import com.dk.platform.Receiver;
 import com.dk.platform.common.EppConf;
 import com.dk.platform.ems.util.EmsUtil;
-import com.dk.platform.eventManager.Consumer;
+import com.dk.platform.Consumer;
 import com.dk.platform.eventManager.process.NewQueueReceiverProcess;
 import com.dk.platform.eventTasker.subProcess.WorkQueueReceiverSubProcess;
 import com.dk.platform.eventTasker.util.MemoryStorage;
